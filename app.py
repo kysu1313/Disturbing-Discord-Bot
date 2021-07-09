@@ -11,13 +11,15 @@ import random
 import os
 import platform
 from distutils.command.config import config
-
+from boto.s3.connection import S3Connection
 
 coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KOI','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo']
 times = {}
 description = '''None of your business, mkay'''
 ENABLED = True
+
+DEV_MODE = False
 
 client = discord.Client()
 bot = Bot(command_prefix='!')
@@ -109,11 +111,12 @@ for filename in os.listdir('./cogs'):
 
 if __name__ == '__main__':
     ENABLED = True
-    load_dotenv()
-    TOKEN = os.getenv('discord-token')
-    #bot.add_cog(Commands(bot))
-    #bot.load_extension("parts.general")
-    #commands = Commands(bot)
+
+    if DEV_MODE:
+        load_dotenv()
+        TOKEN = os.getenv('discord-token')
+    else:
+        TOKEN = os.environ['discord-token']
     bot.run(TOKEN)
 
 
