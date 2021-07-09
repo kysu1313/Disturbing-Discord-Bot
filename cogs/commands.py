@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import threading
 import datetime
 import time
-from cogs.parts.apis import Apis
+from cogs.bot_parts.apis import Apis
 
 class Commands(commands.Cog):
     def __init__(self, bot):

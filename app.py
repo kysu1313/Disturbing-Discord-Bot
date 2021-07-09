@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
-from cogs.parts.apis import Apis
+from cogs.bot_parts.apis import Apis
 from cogs.commands import Commands
 import random
 import re
