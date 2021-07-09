@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import os
 import random
-from dotenv import load_dotenv
 import threading
 import datetime
 import time
@@ -11,8 +10,7 @@ from cogs.bot_parts.apis import Apis
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        load_dotenv()
-        self.bot_id = os.getenv('bot-id')
+        self.bot_id = os.os.environ['bot-id']
 
     # Events
     @commands.Cog.listener()
