@@ -10,7 +10,7 @@ from cogs.bot_parts.apis import Apis
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot_id = os.os.environ['bot-id']
+        self.bot_id = os.environ['bot-id']
 
     # Events
     @commands.Cog.listener()
