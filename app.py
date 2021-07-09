@@ -11,7 +11,7 @@ import time
 import random
 import os
 import platform
-from distutils.command.config import config
+from distutils.command.config import config 
 
 
 coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KOI','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
