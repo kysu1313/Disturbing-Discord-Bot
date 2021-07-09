@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
-from cogs.parts.crypto_api import CryptoApi
-from cogs.parts.pokemon_api import PokeApi
+from cogs.parts.apis import Apis
 from dotenv import load_dotenv
 from cogs.commands import Commands
 import random
@@ -11,8 +10,7 @@ import time
 import random
 import os
 import platform
-from distutils.command.config import config 
-from boto.s3.connection import S3Connection
+from distutils.command.config import config
 
 
 coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KOI','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
@@ -20,8 +18,6 @@ greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo',
 times = {}
 description = '''None of your business, mkay'''
 ENABLED = True
-
-DEV_ENV = False
 
 client = discord.Client()
 bot = Bot(command_prefix='!')
@@ -72,11 +68,11 @@ async def on_message(message):
             ENABLED = False
             return 
 
-        crypto = CryptoApi()
+        api = Apis()
         items = msg.split(' ')
         for item in items:
             if item.upper() in coins:
-                await message.channel.send('The current price of {} is ${}'.format(item.upper(), crypto.get_price(item.upper())))
+                await message.channel.send('The current price of {} is ${}'.format(item.upper(), api.get_crypto_price(item.upper())))
 
         if 'yay' in msg.split(' '):
             await message.channel.send("🤩")
@@ -96,10 +92,9 @@ async def on_message(message):
         if any(word in msg.split(" ") for word in greetings):
             await message.channel.send('hi 🙂')
 
-        poke = PokeApi()
         if 'skills:' in msg.lower():
             item = message.channel.content.split(":")[1].strip()
-            result = poke.get_skills(item)
+            result = api.get_skills(item)
             if result is None:
                 await message.channel.send('No skills found 😢')
             else:
@@ -114,12 +109,11 @@ for filename in os.listdir('./cogs'):
 
 if __name__ == '__main__':
     ENABLED = True
-    
-    if DEV_ENV:
-        load_dotenv()
-        TOKEN = os.getenv('discord-token')
-    else:
-        TOKEN = os.environ['discord-token']
+    load_dotenv()
+    TOKEN = os.getenv('discord-token')
+    #bot.add_cog(Commands(bot))
+    #bot.load_extension("parts.general")
+    #commands = Commands(bot)
     bot.run(TOKEN)
 
 

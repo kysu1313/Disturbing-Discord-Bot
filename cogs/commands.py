@@ -5,6 +5,8 @@ import random
 from dotenv import load_dotenv
 import threading
 import datetime
+import time
+from cogs.parts.apis import Apis
 
 class Commands(commands.Cog):
     def __init__(self, bot):
@@ -28,6 +30,14 @@ class Commands(commands.Cog):
 
         if(current_time == '02:11:00'):  # check if matches with the desired time
             print('sending message')
+
+    @commands.command(name='joke', help='Tells a joke')
+    async def joke(self, ctx):
+        joke = Apis()
+        setup, punchline = joke.get_joke()
+        await ctx.send(setup)
+        time.sleep(5)
+        await ctx.send(punchline)
 
     # Commands
     @commands.command(help='Simple check to verify bot is functioning properly')
