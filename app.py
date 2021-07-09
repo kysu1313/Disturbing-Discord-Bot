@@ -112,11 +112,11 @@ for filename in os.listdir('./cogs'):
 if __name__ == '__main__':
     ENABLED = True
 
-    if DEV_MODE:
-        load_dotenv()
-        TOKEN = os.getenv('discord-token')
-    else:
-        TOKEN = os.environ['discord-token']
+    #if DEV_MODE:
+    #    load_dotenv()
+    #    TOKEN = os.getenv('discord-token')
+    #else:
+    TOKEN = os.environ['discord-token']
     bot.run(TOKEN)
 
 
