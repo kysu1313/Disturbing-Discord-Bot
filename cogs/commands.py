@@ -6,11 +6,13 @@ import threading
 import datetime
 import time
 from cogs.bot_parts.apis import Apis
+from helpers.settings import Settings
 
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot_id = os.environ['bot-id']
+        self.settings = Settings()
+        self.bot_id = self.settings.get_bot_id()
 
     # Events
     @commands.Cog.listener()

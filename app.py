@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 from cogs.bot_parts.apis import Apis
 from cogs.commands import Commands
+from helpers.settings import Settings
 import random
 import re
 import time
@@ -16,9 +17,13 @@ coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KO
 greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo']
 times = {}
 description = '''None of your business, mkay'''
+BOT_ID = ""
 ENABLED = True
 
-DEV_MODE = False
+#################################################
+####### IMPORTANT: CHANGE FOR PRODUCTION ########
+#################################################
+DEV_MODE = True
 
 client = discord.Client()
 bot = Bot(command_prefix='!')
@@ -110,12 +115,8 @@ for filename in os.listdir('./cogs'):
 
 if __name__ == '__main__':
     ENABLED = True
-
-    #if DEV_MODE:
-    #    load_dotenv()
-    #    TOKEN = os.getenv('discord-token')
-    #else:
-    TOKEN = os.environ['discord-token']
+    settings = Settings(DEV_MODE)
+    TOKEN = settings.get_bot_token()
     bot.run(TOKEN)
 
 
