@@ -13,6 +13,9 @@ class Settings:
             bot_id = os.environ['test-discord-token']
         return bot_id
 
+    def get_is_production(self):
+        return self.is_production
+
     def get_bot_token(self):
         token = ""
         if self.is_production:
