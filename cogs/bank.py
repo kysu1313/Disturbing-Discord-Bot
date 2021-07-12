@@ -1,11 +1,13 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import has_permissions, CheckFailure
 import os
 import time
 from helpers.settings import Settings
 import json
 import random
 from cogs.commands import Commands
+from discord.ext.commands.errors import MissingPermissions
 
 IMAGES = [
     ["💎"],
@@ -55,8 +57,37 @@ class BankAccount(commands.Cog):
         wallet, bank = await self.open_account(ctx)
         await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(ctx.message.author, bank, wallet))
 
-    @commands.command(name='adjust', help='Server ownder / Mods can update users banks.')
-    async def adjust(self, ctx):
+    #@has_permissions(administrator=True)
+    #@commands.command(name='adjust', help='Server owner / Mods can update users banks.')
+    #async def adjust(self, ctx, username, amount):
+    #    members = list(ctx.message.server.members)
+    #    member = members(lambda a: a.name.lower() == username.lower())
+    #    if member is not None:
+    #        self.update_balance(member, amount)
+    #    else:
+    #        await ctx.send("User not found.")
+    #        return
+    #    await ctx.send("Added ${} to {}'s account.")
+
+    #@adjust.error
+    #async def adjust_error(self, error, ctx):
+    #    if isinstance(error, MissingPermissions):
+    #        text = "Sorry {}, you do not have permissions to do that! 🤣".format(ctx.message.author)
+    #        await bot.send_message(ctx.message.channel, text)
+
+    @commands.command(name='transfer', help='Transfer money from wallet to bank and vice-versa. i.e: (!transfer 40 bank) transfers $40 from wallet to bank')
+    async def transfer(self, ctx, amount, destination):
+        wallet, bank = await self.open_account(ctx)
+        amount = int(amount)
+        if amount < 0:
+            await ctx.send("{}, you can't transfer a negative amount".format(ctx.message.author, bank, wallet))
+            return
+        elif destination.lower() == "bank": 
+            if wallet - amount >= 0:
+                await self.set_money(ctx, bank + amount, wallet - amount)
+        elif destination.lower() == "wallet": 
+            if bank - amount >= 0:
+                await self.set_money(ctx, bank - amount, wallet + amount)
         wallet, bank = await self.open_account(ctx)
         await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(ctx.message.author, bank, wallet))
 
@@ -73,13 +104,7 @@ class BankAccount(commands.Cog):
         """
         await ctx.send(description)
 
-    #@commands.command(name='adjust', help='Server ownder / Mods can update users banks.')
-    #async def adjust(self, ctx):
-    #    wallet, bank = await self.open_account(ctx)
-    #    await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(ctx.message.author, bank, wallet))
-
-
-    @commands.command(name='slots', help='$30 to spin the wheel 🎰')
+    @commands.command(name='slots', help='$20 to spin the wheel 🎰')
     async def slots(self, ctx):
         global IMAGES
         cost = -20
@@ -153,8 +178,23 @@ class BankAccount(commands.Cog):
         )
         await ctx.send(embed=embedd)
         
+    async def set_money(self, context, new_bank, new_wallet):
+        bank, wallet = await self.open_account(context)
+        user_id = context.message.author.id
+        if new_bank > 0:
+            bank = new_bank
+        if new_wallet > 0:
+            wallet = new_wallet
+        users = await self.get_bank_data()
+        for user in users:
+            if user["id"] == user_id:
+                user["wallet"] = wallet
+                user["bank"] = bank
+        with open("main-bank.json", "w") as f:
+            json.dump(users, f)
+
     async def update_balance(self, context, amount):
-        wallet, bank = await self.open_account(context)
+        bank, wallet = await self.open_account(context)
         user_id = context.message.author.id
         if amount == 0:
             return

@@ -68,6 +68,9 @@ async def on_message(message):
         if message.author == bot.user:
             return
 
+        if message.author.name == "Lil-Bot" or message.author.name == "Test-Bot": 
+            return
+
         msg = message.content.lower()
 
         if '!stopbot' in msg:
