@@ -25,7 +25,7 @@ settings = None
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ######## 
 #################################################
-DEV_MODE = True
+DEV_MODE = False
 
 
 intents = discord.Intents.all()

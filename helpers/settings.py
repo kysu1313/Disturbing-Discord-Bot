@@ -9,7 +9,7 @@ class Settings:
     def get_bot_id(self):
         bot_id = ""
         if self.is_production:
-            bot_id = os.environ['test-bot-id']
+            bot_id = os.environ['bot-id']
         else:
             bot_id = os.environ['test-discord-token']
         return bot_id
