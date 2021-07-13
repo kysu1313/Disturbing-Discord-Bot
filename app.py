@@ -25,7 +25,7 @@ settings = None
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ######## 
 #################################################
-PROD_MODE = True
+PROD_MODE = False
 
 
 intents = discord.Intents.all()
