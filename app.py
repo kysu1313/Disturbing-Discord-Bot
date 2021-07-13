@@ -25,7 +25,7 @@ settings = None
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ######## 
 #################################################
-DEV_MODE = False
+PROD_MODE = True
 
 
 intents = discord.Intents.all()
@@ -126,7 +126,7 @@ for filename in os.listdir('./cogs'):
 
 if __name__ == '__main__':
     ENABLED = True
-    settings = Settings(DEV_MODE)
+    settings = Settings(PROD_MODE)
     TOKEN = settings.get_bot_token()
     bot.run(TOKEN)
 
