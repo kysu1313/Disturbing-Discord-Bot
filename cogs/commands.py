@@ -6,15 +6,28 @@ import threading
 import datetime
 import time
 from cogs.bot_parts.apis import Apis
+from helpers.settings import Settings
 
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot_id = os.environ['bot-id']
+        self.settings = Settings()
+        self.bot_id = self.settings.get_bot_id()
+        if not self.settings.get_is_production():
+            bot.remove_command("joke")
+            bot.remove_command("ping")
+            bot.remove_command("guess")
+            bot.remove_command("poll")
+            bot.remove_command("invite")
+            bot.remove_command("8ball")
+            bot.remove_command("server")
+            bot.remove_command("roll")
+
+        
 
     # Events
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self,):
         print(f'{self.bot.user.name} has connected to Discord!')
 
     def checkTime(self):
