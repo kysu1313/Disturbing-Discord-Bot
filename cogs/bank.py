@@ -22,7 +22,7 @@ class BankAccount(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.settings = Settings()
-        self.bot_id = self.settings.get_bot_id()
+        self.bot_id = self.settings.id
         if not self.settings.get_is_production():
             bot.remove_command("bank")
             bot.remove_command("slots")
