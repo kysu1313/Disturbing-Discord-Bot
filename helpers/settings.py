@@ -20,7 +20,7 @@ class Settings:
     def get_bot_token(self):
         token = ""
         if self.is_production:
-            token = os.environ['test-discord-token']
-        else:
             token = os.environ['discord-token']
+        else:
+            token = os.environ['test-discord-token']
         return token
