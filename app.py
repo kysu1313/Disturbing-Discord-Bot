@@ -19,14 +19,19 @@ times = {}
 description = '''None of your business, mkay'''
 BOT_ID = ""
 ENABLED = True
+settings = None
 
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
 DEV_MODE = True
-
+intents = discord.Intents.all()
+#intents.members = True
+#intents.guilds = True
+#intents.messages = True
+#intents.bans = True
 client = discord.Client()
-bot = Bot(command_prefix='!')
+bot = Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():

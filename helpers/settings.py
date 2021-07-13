@@ -4,6 +4,7 @@ import os
 class Settings:
     def __init__(self, is_production=False):
         self.is_production = is_production
+        self.members = []
 
     def get_bot_id(self):
         bot_id = ""
