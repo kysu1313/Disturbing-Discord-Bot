@@ -23,7 +23,7 @@ settings = None
 
 
 #################################################
-####### IMPORTANT: CHANGE FOR PRODUCTION ########
+####### IMPORTANT: CHANGE FOR PRODUCTION ######## 
 #################################################
 DEV_MODE = False
 
