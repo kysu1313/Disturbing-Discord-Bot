@@ -11,7 +11,7 @@ from helpers.settings import Settings
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Settings()
+        self.settings = Settings() 
         self.bot_id = self.settings.id
         if not self.settings.get_is_production():
             bot.remove_command("joke")
