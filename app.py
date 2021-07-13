@@ -21,10 +21,13 @@ BOT_ID = ""
 ENABLED = True
 settings = None
 
+
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
-DEV_MODE = True
+DEV_MODE = False
+
+
 intents = discord.Intents.all()
 #intents.members = True
 #intents.guilds = True
