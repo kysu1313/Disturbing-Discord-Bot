@@ -55,6 +55,30 @@ class Commands(commands.Cog):
     async def ping(self, ctx):
         await ctx.send('🏓 Pong!')
 
+    @commands.command(name="fonts", help='Get ascii font list')
+    async def fonts(self, context):
+        apis = Apis()
+        result = apis.get_fonts()
+        embed = discord.Embed(
+            title="Ascii font list:",
+            description=f"{result}",
+            color=0x42F56C
+        )
+        embed.set_footer(
+            text=f"Fonts"
+        )
+        await context.send(embed=embed)
+
+    @commands.command(name="ascii", help='<text> <font?>, Convert text to ascii with certain font')
+    async def ascii(self, ctx, text, font=None):
+        result = ""
+        apis = Apis()
+        if font is not None:
+            result = apis.get_ascii(text, font)
+        elif font is None:
+            result = apis.get_ascii(text)
+        await ctx.send(result)
+
     @commands.command(name='guess', help='Guess the number between 1 and 10')
     async def guess(self, ctx):
         await ctx.send('Guess a number between 1 to 10')

@@ -60,3 +60,33 @@ class Apis:
         except Exception as e:
             print("Error: {}".format(e))
             return None
+
+    def get_ascii(self, text, font=None):
+        try:
+            response = None
+            if font is not None:
+                response = requests.get("https://artii.herokuapp.com/make?text={}&font={}".format(text, font))
+            else:
+                response = requests.get("https://artii.herokuapp.com/make?text={}".format(text))
+            result = ""
+            if response is not None:
+                result = response.text
+            return result
+        except Exception as e:
+            print("Error: {}".format(e))
+            return None
+
+    def get_fonts(self):
+        # https://artii.herokuapp.com/fonts_list
+        try:
+            response = requests.get("https://artii.herokuapp.com/fonts_list")
+            fonts = []
+            if response is not None:
+                data = response.text.split('\n')
+                for font in data:
+                    if "_" not in font:
+                        fonts.append(font)
+            return fonts
+        except Exception as e:
+            print("Error: {}".format(e))
+            return None
