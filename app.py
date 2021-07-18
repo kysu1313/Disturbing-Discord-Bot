@@ -12,6 +12,7 @@ import os
 import platform
 from distutils.command.config import config
 from boto.s3.connection import S3Connection
+import json
 
 coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KOI','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo', 'howdy']

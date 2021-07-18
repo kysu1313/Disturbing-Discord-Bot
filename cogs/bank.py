@@ -17,6 +17,7 @@ IMAGES = [
     ["🍇"],
     ["❤️"],
 ]
+MONEY_SYMBOL = "🍬"
 
 class BankAccount(commands.Cog):
     def __init__(self, bot):
@@ -38,7 +39,7 @@ class BankAccount(commands.Cog):
     async def bank(self, ctx, username=None):
         if username is not None:
             user = await self.get_user_from_name(ctx, username)
-            wallet, bank = await self.open_account_userid(user.id)
+            wallet, bank = await self.open_account_userid(ctx, user.id)
             await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(user.name, bank, wallet))
         else:
             wallet, bank = await self.open_account(ctx)
@@ -52,11 +53,11 @@ class BankAccount(commands.Cog):
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
         if member is not None:
-            bank, wallet = await self.get_simple_bank(member, member.id)
+            bank, wallet = await self.get_simple_bank(ctx, member, member.id)
             if location.lower() == "bank": 
-                await self.set_money(member.id, amount, wallet)
+                await self.set_money(ctx, member.id, amount, wallet)
             elif location.lower() == "wallet": 
-                await self.set_money(member.id, bank, amount)
+                await self.set_money(ctx, member.id, bank, amount)
             #self.update_balance(member, amount)
         else:
             await ctx.send("User not found.")
@@ -77,13 +78,13 @@ class BankAccount(commands.Cog):
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
         if member is not None and int(amount) > 0 and int(usr_wallet) > 0:
-            bank, wallet = await self.open_account_userid(member.id)
-            await self.set_money(member.id, bank, int(wallet) + int(amount))
-            await self.set_money(ctx.message.author.id, usr_bank, int(usr_wallet) - int(amount))
+            bank, wallet = await self.open_account_userid(ctx, member.id)
+            await self.set_money(ctx, member.id, bank, int(wallet) + int(amount))
+            await self.set_money(ctx, ctx.message.author.id, usr_bank, int(usr_wallet) - int(amount))
         else:
             await ctx.send("User not found. Or you don't have enough $$")
             return
-        await ctx.send("{} Paid {} ${}.".format(ctx.message.author, member.name, amount))
+        await ctx.send("{} Paid {} {} {} tokens.".format(ctx.message.author, member.name, amount, MONEY_SYMBOL))
 
     @commands.command(name='transfer', help='Transfer money from wallet to bank and vice-versa. i.e: (!transfer 40 bank) transfers $40 from wallet to bank')
     async def transfer(self, ctx, amount, destination):
@@ -94,15 +95,21 @@ class BankAccount(commands.Cog):
             return
         elif destination.lower() == "bank": 
             if wallet - amount >= 0:
-                await self.set_money(ctx.message.author.id, bank + amount, wallet - amount)
+                await self.set_money(ctx, ctx.message.author.id, bank + amount, wallet - amount)
         elif destination.lower() == "wallet": 
             if bank - amount >= 0:
-                await self.set_money(ctx.message.author.id, bank - amount, wallet + amount)
+                await self.set_money(ctx, ctx.message.author.id, bank - amount, wallet + amount)
         bank, wallet = await self.open_account(ctx)
-        await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(ctx.message.author, bank, wallet))
+        await ctx.send("{} ---> Bank: {}, Wallet: {}".format(ctx.message.author, bank, wallet))
 
-    @commands.command(name='highlow', help='Cost: $5. Bet wether the number will be higher or lower than 5 / 10')
+    @commands.command(name='highlow', help='Cost: 5. Bet wether the number will be higher or lower than 5 / 10')
     async def highlow(self, ctx, amount, choice):
+        '''
+        Guess wether the number will be higher or lower than 5 / 10. If correct you double your bet amount.
+        ctx: user who sent command
+        amount: the amount you want to bet
+        choice: "higher" / "lower"
+        '''
         bank, wallet = await self.open_account(ctx)
         price = 5
         amount = int(re.sub("[^0-9]", "", amount))
@@ -113,10 +120,10 @@ class BankAccount(commands.Cog):
             return
         elif wallet > amount+price:
             remove_from = wallet
-            await self.set_money(ctx.message.author.id, bank, wallet - price)
+            await self.set_money(ctx, ctx.message.author.id, bank, wallet - price)
         elif bank > amount+price:
             remove_from = bank
-            await self.set_money(ctx.message.author.id, bank - price, wallet)
+            await self.set_money(ctx, ctx.message.author.id, bank - price, wallet)
 
         result = random.randrange(1,10)
         description = ""
@@ -124,36 +131,36 @@ class BankAccount(commands.Cog):
 
         if choice.lower() == "higher": 
             if result >= 5:
-                await self.set_money(ctx.message.author.id, bank, wallet + (prize))
+                await self.set_money(ctx, ctx.message.author.id, bank, wallet + (prize))
                 description = "{}".format(result)
                 title = "Congrats! You won ${}".format(prize)
             else:
                 if remove_from == bank:
-                    await self.set_money(ctx.message.author.id, bank - amount, wallet)
+                    await self.set_money(ctx, ctx.message.author.id, bank - amount, wallet)
                 else:
-                    await self.set_money(ctx.message.author.id, bank, wallet - amount)
+                    await self.set_money(ctx, ctx.message.author.id, bank, wallet - amount)
                 description = "{}".format(result)
                 title = "You win nothing"
         elif choice.lower() == "lower":
             if result < 5:
-                await self.set_money(ctx.message.author.id, bank, wallet + (prize))
+                await self.set_money(ctx, ctx.message.author.id, bank, wallet + (prize))
                 description = "{}".format(result)
                 title = "Congrats! You won ${}".format(prize)
             else:
                 if remove_from == bank:
-                    await self.set_money(ctx.message.author.id, bank - amount, wallet)
+                    await self.set_money(ctx, ctx.message.author.id, bank - amount, wallet)
                 else:
-                    await self.set_money(ctx.message.author.id, bank, wallet - amount)
+                    await self.set_money(ctx, ctx.message.author.id, bank, wallet - amount)
                 description = "{}".format(result)
                 title = "You win nothing"
         
         embedd = discord.Embed(
             title=title,
-            description="Cost = ${}".format(price),
+            description="Cost = {} {}'\s".format(price, MONEY_SYMBOL),
             color=0x42F56C
         )
         embedd.add_field(name="Roll", value=description)
-        embedd.add_field(name="Potential Winnings:", value="${}".format(prize))
+        embedd.add_field(name="Potential Winnings:", value="{} {}'\s".format(prize, MONEY_SYMBOL))
         embedd.set_footer(
             text=f"{ctx.message.author} rolled a {result} / 10"
         )
@@ -171,48 +178,57 @@ class BankAccount(commands.Cog):
         '''
         members = self.find_all_members(ctx)
         member = [a for a in members if a.name.lower() == victim.lower()][0]
-        usr_bank, usr_wallet = await self.open_account_userid(member.id)
+        usr_bank, usr_wallet = await self.open_account_userid(ctx, member.id)
         bank, wallet = await self.open_account(ctx)
         rand = random.randint(1, 5)
         # If user guesses wrong, give 0.2% of amount to victim and deduct from attacker
         if int(guess) != rand:
             cost = 0.2 * int(amount)
-            await self.set_money(member.id, usr_bank, int(usr_wallet) + cost)
-            await self.set_money(ctx.message.author.id, bank, int(wallet) - cost)
+            await self.set_money(ctx, member.id, usr_bank, int(usr_wallet) + cost)
+            await self.set_money(ctx, ctx.message.author.id, bank, int(wallet) - cost)
             await ctx.send("You got caught! @{} took {} from you.".format(victim, cost))
             return
-        check_amount = await self.check_for_enough_balance(member.id, amount)
+        check_amount = await self.check_for_enough_balance(ctx, member.id, amount)
         if check_amount == "":
             await ctx.send("{} doesn't even have that much money! LOL".format(member.name))
             return
         if member is not None and int(amount) > 0:
             if check_amount == "wallet":
-                await self.set_money(member.id, usr_bank, int(usr_wallet) - int(amount))
-                await self.set_money(ctx.message.author.id, bank, int(wallet) + int(amount))
+                await self.set_money(ctx, member.id, usr_bank, int(usr_wallet) - int(amount))
+                await self.set_money(ctx, ctx.message.author.id, bank, int(wallet) + int(amount))
             elif check_amount == "bank":
-                await self.set_money(member.id, int(usr_bank) - int(amount), usr_wallet)
-                await self.set_money(ctx.message.author.id, int(bank) + int(amount), wallet)
+                await self.set_money(ctx, member.id, int(usr_bank) - int(amount), usr_wallet)
+                await self.set_money(ctx, ctx.message.author.id, int(bank) + int(amount), wallet)
 
         await ctx.send("Success! @{} stole {} from @{}".format(ctx.author, amount, member))
 
     @commands.command(name='leaderboard', help='Shows the prizes for each game.')
     async def leaderboard(self, ctx):
+        '''
+        Returns list of users sorted by total wealth.
+        '''
         members = self.find_all_members(ctx)
-        title = "Leaderboard"
+        title = "💰 Leaderboard 💰"
         
         member_list = ""
+        total_lst = []
+        result_lst = ""
         count = 1
-        for m in members:
-            wallet, bank = await self.open_account_userid(m.id)
-            total = int(wallet) + int(bank)
-            member_list += "{}. {}: ${}\n".format(count, m.name, total)
-            count += 1
 
-        
+        for m in members:
+            wallet, bank = await self.open_account_userid(ctx, m.id)
+            total = int(wallet) + int(bank)
+            total_lst.append((m.name, total))
+
+        total_lst.sort(key=lambda x: x[1])
+        reverse_lst = total_lst[::-1]
+        for m in reverse_lst:
+            result_lst += "{}. {}: {}\n".format(count, m[0], m[1])
+            count += 1
 
         embedd = discord.Embed(
             title=title,
-            description=member_list,
+            description=result_lst,
             color=0x42F56C
         )
         embedd.set_footer(
@@ -233,7 +249,7 @@ class BankAccount(commands.Cog):
         """
         await ctx.send(description)
 
-    @commands.command(name='slots', help='$20 to spin the wheel 🎰')
+    @commands.command(name='slots', help='Costs 20 to spin the wheel 🎰, use !prizes to see rewards')
     async def slots(self, ctx):
         global IMAGES
         cost = -100
@@ -241,7 +257,7 @@ class BankAccount(commands.Cog):
         pay_to_play = await self.update_balance(ctx, cost)
 
         if not pay_to_play:
-            await ctx.send("LOL, you are soo fucking poor 😂. Transaction Failed")
+            await ctx.send("LOL, you are soo poor 😂. Transaction Failed")
             return
 
         prize = 0
@@ -304,7 +320,7 @@ class BankAccount(commands.Cog):
             text=f"Spun by: {ctx.message.author}"
         )
         await ctx.send(embed=embedd)
-    
+
     async def get_user_from_name(self, ctx, username):
         members = self.find_all_members(ctx)
         usr_bank, usr_wallet = await self.open_account(ctx)
@@ -312,7 +328,8 @@ class BankAccount(commands.Cog):
         member = [a for a in members if a.name.lower() == username.lower()][0]
         return member
     
-    async def check_for_enough_balance(self, user_id, amount):
+    async def check_for_enough_balance(self, ctx, user_id, amount):
+        guild_id = await self.get_guild_id(ctx)
         usr_bank, usr_wallet = await self.open_account_userid(user_id)
         bank = int(usr_bank)
         wallet = int(usr_wallet)
@@ -323,11 +340,11 @@ class BankAccount(commands.Cog):
             return "bank"
         else:
             return ""
-        
 
-    async def set_money(self, user_id, new_bank, new_wallet):
+    async def set_money(self, ctx, user_id, new_bank, new_wallet):
         #user_id = context.message.author.id
-        users = await self.get_bank_data()
+        guild_id = await self.get_guild_id(ctx)
+        users = await self.get_bank_data(guild_id)
         for user in users:
             if user["id"] == user_id:
                 user["wallet"] = int(new_wallet)
@@ -335,9 +352,9 @@ class BankAccount(commands.Cog):
         with open("main-bank.json", "w") as f:
             json.dump(users, f)
 
-    async def update_balance(self, context, amount):
-        bank, wallet = await self.open_account(context)
-        user_id = context.message.author.id
+    async def update_balance(self, ctx, amount):
+        bank, wallet = await self.open_account(ctx)
+        user_id = ctx.message.author.id
         if amount == 0:
             return
         if amount > 0:
@@ -352,7 +369,8 @@ class BankAccount(commands.Cog):
             bank += amount
         else:
             return False
-        users = await self.get_bank_data()
+        guild_id = await self.get_guild_id(ctx)
+        users = await self.get_bank_data(guild_id)
         for user in users:
             if user["id"] == user_id:
                 user["wallet"] = wallet
@@ -361,8 +379,9 @@ class BankAccount(commands.Cog):
             json.dump(users, f)
         return True
             
-    async def get_simple_bank(self, user, user_id):
-        users = await self.get_bank_data()
+    async def get_simple_bank(self, ctx, user, user_id):
+        guild_id = await self.get_guild_id(ctx)
+        users = await self.get_bank_data(guild_id)
         for user in list(users):
             if user["id"] == user_id:
                 return user["bank"], user["wallet"]
@@ -374,9 +393,10 @@ class BankAccount(commands.Cog):
             members.append(member)
         return members
 
-    async def open_account_userid(self, user_id):
+    async def open_account_userid(self, ctx, user_id):
         balance = 500
-        users = await self.get_bank_data()
+        guild_id = await self.get_guild_id(ctx)
+        users = await self.get_bank_data(guild_id)
         
         for user in list(users):
             if user["id"] == user_id:
@@ -391,11 +411,12 @@ class BankAccount(commands.Cog):
 
         return balance, balance
 
-    async def open_account(self, context):
-        user = context.message.author
-        user_id = context.message.author.id
+    async def open_account(self, ctx):
+        user = ctx.message.author
+        user_id = ctx.message.author.id
+        guild_id = await self.get_guild_id(ctx)
         balance = 500
-        users = await self.get_bank_data()
+        users = await self.get_bank_data(guild_id)
         
         for user in list(users):
             if user["id"] == user_id:
@@ -410,12 +431,24 @@ class BankAccount(commands.Cog):
 
         return balance, balance
 
-    async def get_bank_data(self):
+    async def get_guild_id(self, ctx):
+        guild_id = ctx.message.guild.id
+        return guild_id
+    
+    @commands.command(name='test', help='Used for testing commands. Development mode only')
+    async def test(self, ctx):
+        tmp = await self.open_account(ctx)
+        print(tmp)
+        pass
+
+    async def get_bank_data(self, guild_id):
         users = None
-        with open("main-bank.json", "r") as f:
-            users = json.load(f)
+        with open("main-bank-backup.json", "r") as f:
+            data = json.load(f)
+            for server in data['servers']:
+                if server["server_id"] == str(guild_id):
+                    users = server["members"]
         return users
-
 
 def setup(bot):
     bot.add_cog(BankAccount(bot))
