@@ -4,6 +4,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 import os
 import time
 from helpers.settings import Settings
+from helpers.dbconn import DbConn
 import json
 import random
 from cogs.commands import Commands
@@ -18,6 +19,7 @@ IMAGES = [
     ["❤️"],
 ]
 MONEY_SYMBOL = "🍬"
+STARTING_MONEY = 500
 
 class BankAccount(commands.Cog):
     def __init__(self, bot):
@@ -39,11 +41,11 @@ class BankAccount(commands.Cog):
     async def bank(self, ctx, username=None):
         if username is not None:
             user = await self.get_user_from_name(ctx, username)
-            wallet, bank = await self.open_account_userid(ctx, user.id)
-            await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(user.name, bank, wallet))
+            wallet, bank = await self.open_account_userid(ctx, user)
+            await ctx.send("{} ---> Bank: {} 🍬, Wallet: {} 🍬".format(user.name, bank, wallet))
         else:
             wallet, bank = await self.open_account(ctx)
-            await ctx.send("{} ---> Bank: ${}, Wallet: ${}".format(ctx.message.author, bank, wallet))
+            await ctx.send("{} ---> Bank: {} 🍬, Wallet: {} 🍬".format(ctx.message.author, bank, wallet))
 
     @has_permissions(administrator=True)
     @commands.command(name='adjust', help='<username> <amount> <bank/wallet>. Adjusts users money')
@@ -53,7 +55,7 @@ class BankAccount(commands.Cog):
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
         if member is not None:
-            bank, wallet = await self.get_simple_bank(ctx, member, member.id)
+            wallet, bank = await self.get_simple_bank(ctx, member, member.id)
             if location.lower() == "bank": 
                 await self.set_money(ctx, member.id, amount, wallet)
             elif location.lower() == "wallet": 
@@ -78,7 +80,7 @@ class BankAccount(commands.Cog):
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
         if member is not None and int(amount) > 0 and int(usr_wallet) > 0:
-            bank, wallet = await self.open_account_userid(ctx, member.id)
+            bank, wallet = await self.open_account_userid(ctx, member)
             await self.set_money(ctx, member.id, bank, int(wallet) + int(amount))
             await self.set_money(ctx, ctx.message.author.id, usr_bank, int(usr_wallet) - int(amount))
         else:
@@ -156,7 +158,7 @@ class BankAccount(commands.Cog):
         
         embedd = discord.Embed(
             title=title,
-            description="Cost = {} {}'\s".format(price, MONEY_SYMBOL),
+            description="Cost = {} {}'s".format(price, MONEY_SYMBOL),
             color=0x42F56C
         )
         embedd.add_field(name="Roll", value=description)
@@ -178,7 +180,7 @@ class BankAccount(commands.Cog):
         '''
         members = self.find_all_members(ctx)
         member = [a for a in members if a.name.lower() == victim.lower()][0]
-        usr_bank, usr_wallet = await self.open_account_userid(ctx, member.id)
+        usr_bank, usr_wallet = await self.open_account_userid(ctx, member)
         bank, wallet = await self.open_account(ctx)
         rand = random.randint(1, 5)
         # If user guesses wrong, give 0.2% of amount to victim and deduct from attacker
@@ -216,7 +218,7 @@ class BankAccount(commands.Cog):
         count = 1
 
         for m in members:
-            wallet, bank = await self.open_account_userid(ctx, m.id)
+            wallet, bank = await self.open_account_userid(ctx, m)
             total = int(wallet) + int(bank)
             total_lst.append((m.name, total))
 
@@ -329,7 +331,7 @@ class BankAccount(commands.Cog):
         return member
     
     async def check_for_enough_balance(self, ctx, user_id, amount):
-        guild_id = await self.get_guild_id(ctx)
+        guild_id = self.get_guild_id(ctx)
         usr_bank, usr_wallet = await self.open_account_userid(user_id)
         bank = int(usr_bank)
         wallet = int(usr_wallet)
@@ -342,15 +344,22 @@ class BankAccount(commands.Cog):
             return ""
 
     async def set_money(self, ctx, user_id, new_bank, new_wallet):
-        #user_id = context.message.author.id
-        guild_id = await self.get_guild_id(ctx)
-        users = await self.get_bank_data(guild_id)
-        for user in users:
-            if user["id"] == user_id:
-                user["wallet"] = int(new_wallet)
-                user["bank"] = int(new_bank)
-        with open("main-bank.json", "w") as f:
-            json.dump(users, f)
+        guild_id = self.get_guild_id(ctx)
+        conn = DbConn()
+        users = await self.get_users(guild_id)
+        server = conn.get_server(guild_id)
+        user = conn.get_user_in_server(user_id, guild_id)
+        username = user.username
+        if server is None:
+            conn.add_server(guild_id, guild_name)
+        user = conn.get_user_in_server(ctx.message.author.id, guild_id)
+        if user is None:
+            conn.add_user(user_id, guild_id, wallet, bank, username)
+            return STARTING_MONEY, STARTING_MONEY
+        else:
+            conn.update_user_money(user_id, guild_id, int(new_wallet), int(new_bank), username)
+            return int(new_wallet), int(new_bank)
+        return True
 
     async def update_balance(self, ctx, amount):
         bank, wallet = await self.open_account(ctx)
@@ -369,22 +378,32 @@ class BankAccount(commands.Cog):
             bank += amount
         else:
             return False
-        guild_id = await self.get_guild_id(ctx)
-        users = await self.get_bank_data(guild_id)
-        for user in users:
-            if user["id"] == user_id:
-                user["wallet"] = wallet
-                user["bank"] = bank
-        with open("main-bank.json", "w") as f:
-            json.dump(users, f)
+
+        conn = DbConn()
+        guild_id = self.get_guild_id(ctx)
+        users = await self.get_users(guild_id)
+        server = conn.get_server(guild_id)
+        username = self.get_username(ctx)
+        if server is None:
+            conn.add_server(guild_id, guild_name)
+        user = conn.get_user_in_server(ctx.message.author.id, guild_id)
+        if user is None:
+            conn.add_user(user_id, guild_id, wallet, bank, username)
+            return wallet, bank
+        else:
+            conn.update_user_money(user_id, guild_id, wallet, bank, username)
+            return wallet, bank
         return True
             
-    async def get_simple_bank(self, ctx, user, user_id):
-        guild_id = await self.get_guild_id(ctx)
-        users = await self.get_bank_data(guild_id)
-        for user in list(users):
-            if user["id"] == user_id:
-                return user["bank"], user["wallet"]
+    async def get_simple_bank(self, ctx, user, user_id) -> (int, int):
+        guild_id = self.get_guild_id(ctx)
+        conn = DbConn()
+        user = conn.get_user_in_server(user_id, guild_id)
+        if user is None:
+            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
+            return STARTING_MONEY, STARTING_MONEY
+        else:
+            return user.bank, user.wallet
 
     def find_all_members(self, ctx):
         server = ctx.message.guild
@@ -393,62 +412,72 @@ class BankAccount(commands.Cog):
             members.append(member)
         return members
 
-    async def open_account_userid(self, ctx, user_id):
+    async def open_account_userid(self, ctx, member) -> (int, int):
         balance = 500
-        guild_id = await self.get_guild_id(ctx)
-        users = await self.get_bank_data(guild_id)
-        
-        for user in list(users):
-            if user["id"] == user_id:
-                return user["bank"], user["wallet"]
-        
-        users += [{"id": user_id,
-                    "wallet": balance, 
-                    "bank": balance}]
-        
-        with open("main-bank.json", "w") as f:
-            json.dump(users, f)
+        guild_id = self.get_guild_id(ctx)
+        conn = DbConn()
+        server = conn.get_server(guild_id)
+        if server is None:
+            conn.add_server(guild_id, guild_name)
+        user = conn.get_user_in_server(member.id, guild_id)
+        if user is None:
+            conn.add_user(member.id, guild_id, STARTING_MONEY, STARTING_MONEY, member.name)
+            return STARTING_MONEY, STARTING_MONEY
+        else:
+            return user.wallet, user.bank
 
-        return balance, balance
+    async def open_account(self, ctx) -> (int, int):
+        guild_id = self.get_guild_id(ctx)
+        guild_name = self.get_guild_name(ctx)
+        user_id = self.get_user_id(ctx)
+        username = self.get_username(ctx)
+        conn = DbConn()
+        server = conn.get_server(guild_id)
+        if server is None:
+            conn.add_server(guild_id, guild_name)
+        user = conn.get_user_in_server(ctx.message.author.id, guild_id)
+        if user is None:
+            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
+            return STARTING_MONEY, STARTING_MONEY
+        else:
+            return user.wallet, user.bank
 
-    async def open_account(self, ctx):
-        user = ctx.message.author
-        user_id = ctx.message.author.id
-        guild_id = await self.get_guild_id(ctx)
-        balance = 500
-        users = await self.get_bank_data(guild_id)
-        
-        for user in list(users):
-            if user["id"] == user_id:
-                return user["bank"], user["wallet"]
-        
-        users += [{"id": user_id,
-                    "wallet": balance, 
-                    "bank": balance}]
-        
-        with open("main-bank.json", "w") as f:
-            json.dump(users, f)
-
-        return balance, balance
-
-    async def get_guild_id(self, ctx):
+    def get_guild_id(self, ctx):
         guild_id = ctx.message.guild.id
         return guild_id
+
+    def get_guild_name(self, ctx):
+        guild_name = ctx.message.guild.name
+        return guild_name
+
+    def get_user_id(self, ctx):
+        user_id = ctx.message.author.id
+        return user_id
+        
+    def get_username(self, ctx):
+        user_name = ctx.message.author.name
+        return user_name
     
     @commands.command(name='test', help='Used for testing commands. Development mode only')
     async def test(self, ctx):
-        tmp = await self.open_account(ctx)
-        print(tmp)
-        pass
+        guild_id = self.get_guild_id(ctx)
+        guild_name = self.get_guild_name(ctx)
+        user_id = self.get_user_id(ctx)
+        username = self.get_username(ctx)
+        conn = DbConn()
+        server = conn.get_server(guild_id)
+        if server is None:
+            conn.add_server(guild_id, guild_name)
+        user = conn.get_user_in_server(ctx.message.author.id, guild_id)
+        if user is None:
+            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
+            return STARTING_MONEY, STARTING_MONEY
+        else:
+            return user.wallet, user.bank
 
-    async def get_bank_data(self, guild_id):
-        users = None
-        with open("main-bank-backup.json", "r") as f:
-            data = json.load(f)
-            for server in data['servers']:
-                if server["server_id"] == str(guild_id):
-                    users = server["members"]
-        return users
+    async def get_users(self, guild_id):
+        conn = DbConn()
+        return conn.get_users_by_server(guild_id)
 
 def setup(bot):
     bot.add_cog(BankAccount(bot))
