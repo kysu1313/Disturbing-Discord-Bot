@@ -1,9 +1,9 @@
-import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 from cogs.bot_parts.apis import Apis
 from cogs.commands import Commands
 from helpers.settings import Settings
+import discord
 import random
 import re
 import time
