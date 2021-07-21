@@ -23,3 +23,6 @@ with open("main-bank.json", "r+") as f:
     json.dump(data, f)
     
 
+
+# --parameters appId="9e83f3e0-fdb1-4e73-a26e-2fb7aa0e9f9e" appSecret="kysu-3376" botId="DisturbingDiscordBot" botSku=F0 newAppServicePlanName="DiscBot" newWebAppName="NewDiscBot" groupName="DiscBot" groupLocation="East US" newAppServicePlanLocation="East US" --name "DiscBot"
+
