@@ -351,10 +351,11 @@ class BankAccount(commands.Cog):
         user = conn.get_user_in_server(user_id, guild_id)
         username = user.username
         if server is None:
+            guild_name = self.get_guild_name(ctx)
             conn.add_server(guild_id, guild_name)
         user = conn.get_user_in_server(ctx.message.author.id, guild_id)
         if user is None:
-            conn.add_user(user_id, guild_id, wallet, bank, username)
+            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
             return STARTING_MONEY, STARTING_MONEY
         else:
             conn.update_user_money(user_id, guild_id, int(new_wallet), int(new_bank), username)
@@ -385,6 +386,7 @@ class BankAccount(commands.Cog):
         server = conn.get_server(guild_id)
         username = self.get_username(ctx)
         if server is None:
+            guild_name = self.get_guild_name(ctx)
             conn.add_server(guild_id, guild_name)
         user = conn.get_user_in_server(ctx.message.author.id, guild_id)
         if user is None:
@@ -395,12 +397,12 @@ class BankAccount(commands.Cog):
             return wallet, bank
         return True
             
-    async def get_simple_bank(self, ctx, user, user_id) -> (int, int):
+    async def get_simple_bank(self, ctx, member, user_id) -> (int, int):
         guild_id = self.get_guild_id(ctx)
         conn = DbConn()
         user = conn.get_user_in_server(user_id, guild_id)
         if user is None:
-            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
+            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, member.name)
             return STARTING_MONEY, STARTING_MONEY
         else:
             return user.bank, user.wallet
@@ -415,6 +417,7 @@ class BankAccount(commands.Cog):
     async def open_account_userid(self, ctx, member) -> (int, int):
         balance = 500
         guild_id = self.get_guild_id(ctx)
+        guild_name = self.get_guild_name(ctx)
         conn = DbConn()
         server = conn.get_server(guild_id)
         if server is None:
