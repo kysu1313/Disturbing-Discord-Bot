@@ -1,6 +1,7 @@
 import requests
 import json
 import cryptocompare
+from helpers.dbconn import DbConn
 
 class Apis:
     def get_joke(self):
@@ -22,8 +23,18 @@ class Apis:
             return None
 
     def get_crypto_price(self, coin):
-        price = cryptocompare.get_price(coin, 'USD')
-        return price
+        curr_coin = cryptocompare.get_price(coin, 'USD')
+        curr_price = 0
+        if curr_coin is not None:
+            curr_price = curr_coin.get(coin)['USD']
+        old_price = curr_price
+        conn = DbConn()
+        exists = conn.get_crypto(coin.upper())
+        if exists is None:
+            old_coin = conn.insert_crypto(coin, curr_price)
+        else:
+            old_coin = conn.get_and_update_crypto(coin.upper(), curr_price)
+        return old_coin
 
     def get_skills(self, name):
         try:

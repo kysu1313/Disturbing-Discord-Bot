@@ -11,9 +11,10 @@ import random
 import os
 import platform
 from distutils.command.config import config
+import matplotlib.pyplot as plt
 import json
 
-coins = ['AUR','BCC','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','KOI','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
+coins = ['AUR','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo', 'howdy']
 times = {}
 description = '''None of your business, mkay'''
@@ -89,7 +90,28 @@ async def on_message(message):
         items = msg.split(' ')
         for item in items:
             if item.upper() in coins:
-                await message.channel.send('The current price of {} is ${}'.format(item.upper(), api.get_crypto_price(item.upper())))
+                old_coin = api.get_crypto_price(item.upper())
+                price = old_coin.price
+                midPrice = old_coin.midPrice
+                olderPrice = old_coin.olderPrice
+                oldestPrice = old_coin.oldestPrice
+                last_time = old_coin.dateAdded
+                plt.figure(figsize=(1,1))
+                fig, ax = plt.subplots()
+                fig.set_size_inches(5, 2.25, 0)
+                plt.legend(facecolor="white", edgecolor="yellow")
+                ax.set_facecolor("#282C34")
+                fig.set_facecolor("#282C34")
+                leg = plt.legend()
+                for line, text in leg.get_texts():
+                    text.set_color('white')
+                    text.set_weight('bold')
+                plt.plot([1, 2, 3, 4],[oldestPrice, olderPrice, midPrice, price], label=f'{item.upper()}')
+                plt.legend()
+                plt.savefig(fname='figure.jpg', edgecolor='w')
+                diff = price - midPrice
+                percent_change = diff / midPrice * 100
+                await message.channel.send(f'The current price of {item.upper()} is ${price}. It changed by {percent_change:.3f}% since last check.', file=discord.File('./figure.jpg'))
 
         if 'yay' in msg.split(' '):
             await message.channel.send("🤩")

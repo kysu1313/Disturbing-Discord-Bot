@@ -99,6 +99,33 @@ class DbConn:
                 return user
         return None
         
+    def insert_crypto(self, coin_name, price):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO dbo.cryptoPrices (coinName, price, midPrice, olderPrice, oldestPrice) VALUES (?, ?, ?, ?, ?);", coin_name, price, price, price, price)
+                cursor.execute("SELECT * FROM dbo.cryptoPrices WHERE coinName=?", coin_name)
+                coin = cursor.fetchone()
+                return coin
+
+    def get_and_update_crypto(self, coin_name, new_price):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM dbo.cryptoPrices WHERE coinName=?", coin_name)
+                coin = cursor.fetchone()
+                cursor.execute("UPDATE dbo.cryptoPrices SET price=?, midPrice=?, olderPrice=?, oldestPrice=?  WHERE coinName=?", new_price, coin.price, coin.midPrice, coin.olderPrice, coin_name)
+                return coin
+        
+    def get_crypto(self, coin_name):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute("SELECT * FROM dbo.cryptoPrices WHERE coinName=?", coin_name)
+                    coin = cursor.fetchone()
+                    return coin
+                except Exception as e:
+                    return None
+        
+        
     def add_member(self, server_id, user_id, username, ):
         conn = self.__connect()
 
