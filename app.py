@@ -100,8 +100,8 @@ async def on_message(message):
                 fig, ax = plt.subplots()
                 fig.set_size_inches(5, 2.25, 0)
                 plt.legend(facecolor="white", edgecolor="yellow")
-                ax.set_facecolor("#282C34")
-                fig.set_facecolor("#282C34")
+                ax.set_facecolor("#2F3136")
+                fig.set_facecolor("#2F3136")
                 leg = plt.legend()
                 for line, text in leg.get_texts():
                     text.set_color('white')
