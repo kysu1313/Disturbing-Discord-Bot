@@ -18,7 +18,7 @@ IMAGES = [
     ["🍇"],
     ["❤️"],
 ]
-MONEY_SYMBOL = "🍬"
+MONEY_SYMBOL = "💸"
 STARTING_MONEY = 500
 
 class BankAccount(commands.Cog):
@@ -39,6 +39,13 @@ class BankAccount(commands.Cog):
 
     @commands.command(name='bank', help='Shows how much cash you or user have in your bank and wallet.')
     async def bank(self, ctx, username=None):
+        '''
+        View bank details.
+
+        Attributes:
+            ctx: user who sent command
+            username: (optional) users bank details to view
+        '''
         if username is not None:
             user = await self.get_user_from_name(ctx, username)
             wallet, bank = await self.open_account_userid(ctx, user)
@@ -50,7 +57,15 @@ class BankAccount(commands.Cog):
     @has_permissions(administrator=True)
     @commands.command(name='adjust', help='<username> <amount> <bank/wallet>. Adjusts users money')
     async def adjust(self, ctx, username, amount, location):
-        
+        '''
+        (Admin) Adjust bank details.
+
+        Attributes:
+            ctx: user who sent command
+            username: (optional) users bank details to adjust
+            amount: Amount to set $$
+            location: bank or wallet
+        '''
         members = self.find_all_members(ctx)
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
@@ -74,7 +89,14 @@ class BankAccount(commands.Cog):
         
     @commands.command(name='pay', help='Pay an amount of $$ to another user.')
     async def pay(self, ctx, username, amount):
-        
+        '''
+        Pay another member $xx amount.
+
+        Attributes:
+            ctx: user who sent command
+            username: (optional) user to send $xx to
+            amount: amount to pay
+        '''
         members = self.find_all_members(ctx)
         usr_bank, usr_wallet = await self.open_account(ctx)
         #members = list(ctx.message.server.members)
@@ -90,6 +112,13 @@ class BankAccount(commands.Cog):
 
     @commands.command(name='transfer', help='Transfer money from wallet to bank and vice-versa. i.e: (!transfer 40 bank) transfers $40 from wallet to bank')
     async def transfer(self, ctx, amount, destination):
+        '''
+        Transfer money from bank to wallet and vice-versa.
+
+        Attributes:
+            ctx: user who sent command
+            destination: where to transfer to, 'bank' or 'wallet'
+        '''
         bank, wallet = await self.open_account(ctx)
         amount = int(amount)
         if amount < 0:
@@ -108,9 +137,11 @@ class BankAccount(commands.Cog):
     async def highlow(self, ctx, amount, choice):
         '''
         Guess wether the number will be higher or lower than 5 / 10. If correct you double your bet amount.
-        ctx: user who sent command
-        amount: the amount you want to bet
-        choice: "higher" / "lower"
+
+        Attributes:
+            ctx: user who sent command
+            amount: the amount you want to bet
+            choice: "higher" / "lower"
         '''
         bank, wallet = await self.open_account(ctx)
         price = 5
@@ -172,11 +203,11 @@ class BankAccount(commands.Cog):
     async def steal(self, ctx, guess, victim, amount):
         '''
         Steal from another member by guessing a number between 1 and 5
-        Parameters
-        ----------
-        ctx: user who sent command
-        guess: number guess between 1 and 5
-        victim: username of target
+
+        Attributes:
+            ctx: user who sent command
+            guess: number guess between 1 and 5
+            victim: username of target
         '''
         members = self.find_all_members(ctx)
         member = [a for a in members if a.name.lower() == victim.lower()][0]
@@ -208,6 +239,9 @@ class BankAccount(commands.Cog):
     async def leaderboard(self, ctx):
         '''
         Returns list of users sorted by total wealth.
+
+        Attributes:
+            ctx: user who sent command
         '''
         members = self.find_all_members(ctx)
         title = "💰 Leaderboard 💰"
@@ -240,6 +274,12 @@ class BankAccount(commands.Cog):
 
     @commands.command(name='prizes', help='Shows the prizes for each game.')
     async def prizes(self, ctx):
+        '''
+        View slots prize details.
+
+        Attributes:
+            ctx: user who sent command
+        '''
         description = """
         # SLOTS PRIZES
         # 💎 4 diamond = $500
@@ -253,8 +293,14 @@ class BankAccount(commands.Cog):
 
     @commands.command(name='slots', help='Costs 20 to spin the wheel 🎰, use !prizes to see rewards')
     async def slots(self, ctx):
+        '''
+        Play slots. Costs $70 to play.
+
+        Attributes:
+            ctx: user who sent command
+        '''
         global IMAGES
-        cost = -100
+        cost = -70
         wallet, bank = await self.open_account(ctx)
         pay_to_play = await self.update_balance(ctx, cost)
 
@@ -264,7 +310,7 @@ class BankAccount(commands.Cog):
 
         prize = 0
         hit_jackpot = False
-        jackpot_amt = 5000
+        jackpot_amt = 50000
 
         diamonds = 0
         fires = 0
@@ -282,13 +328,13 @@ class BankAccount(commands.Cog):
             elif wheel[0] == '🍇': grapes += 1
             elif wheel[0] == '❤️': hearts += 1
         
-        if diamonds >= 4: prize += 800
-        if fires >= 4: prize += 550
-        if cherries >= 4: prize += 150
+        if diamonds >= 4: prize += 1100
+        if fires >= 4: prize += 850
+        if cherries >= 4: prize += 350
 
-        if diamonds >= 2 and fires >= 2 and cherries >= 2 and grapes >= 1: prize += 80
+        if diamonds >= 2 and fires >= 2 and cherries >= 2 and grapes >= 1: prize += 180
 
-        if grapes >= 2: prize += 25
+        if grapes >= 2: prize += 45
         if hearts > 0: prize += hearts
         if diamonds >= 4 and fires >= 2 and cherries >= 2: 
             prize += jackpot_amt
@@ -324,6 +370,13 @@ class BankAccount(commands.Cog):
         await ctx.send(embed=embedd)
 
     async def get_user_from_name(self, ctx, username):
+        '''
+        Get user object from username.
+
+        Attributes:
+            ctx: user who sent command
+            username: username of person to get
+        '''
         members = self.find_all_members(ctx)
         usr_bank, usr_wallet = await self.open_account(ctx)
         #members = list(ctx.message.server.members)
@@ -331,6 +384,14 @@ class BankAccount(commands.Cog):
         return member
     
     async def check_for_enough_balance(self, ctx, user_id, amount):
+        '''
+        Validates the user with user_id has enough balance.
+
+        Attributes:
+            ctx: user who sent command
+            user_id: user id of user
+            amount: amount to validate
+        '''
         guild_id = self.get_guild_id(ctx)
         usr_bank, usr_wallet = await self.open_account_userid(user_id)
         bank = int(usr_bank)
@@ -344,6 +405,15 @@ class BankAccount(commands.Cog):
             return ""
 
     async def set_money(self, ctx, user_id, new_bank, new_wallet):
+        '''
+        Set / update users money.
+
+        Attributes:
+            ctx: user who sent command
+            user_id: user id of user
+            new_bank: updated bank amount
+            new_wallet: updated wallet amount
+        '''
         guild_id = self.get_guild_id(ctx)
         conn = DbConn()
         users = await self.get_users(guild_id)
@@ -363,6 +433,13 @@ class BankAccount(commands.Cog):
         return True
 
     async def update_balance(self, ctx, amount):
+        '''
+        Update users total balance adding / deducting amount from appropriate location (bank or wallet).
+
+        Attributes:
+            ctx: user who sent command
+            amount: amount to update balance by
+        '''
         bank, wallet = await self.open_account(ctx)
         user_id = ctx.message.author.id
         if amount == 0:
@@ -398,6 +475,14 @@ class BankAccount(commands.Cog):
         return True
             
     async def get_simple_bank(self, ctx, member, user_id) -> (int, int):
+        '''
+        Returns the bank and wallet of user_id
+        
+        Attributes:
+            ctx: user who sent command
+            member: get bank and wallet of member
+            user_id: get bank and wallet of user
+        '''
         guild_id = self.get_guild_id(ctx)
         conn = DbConn()
         user = conn.get_user_in_server(user_id, guild_id)
@@ -408,6 +493,12 @@ class BankAccount(commands.Cog):
             return user.bank, user.wallet
 
     def find_all_members(self, ctx):
+        '''
+        Returns all members in server
+        
+        Attributes:
+            ctx: user who sent command
+        '''
         server = ctx.message.guild
         members = []
         for member in server.members:
@@ -415,6 +506,13 @@ class BankAccount(commands.Cog):
         return members
 
     async def open_account_userid(self, ctx, member) -> (int, int):
+        '''
+        Open new bank account and wallet for member
+        
+        Attributes:
+            ctx: user who sent command
+            member: open bank for
+        '''
         balance = 500
         guild_id = self.get_guild_id(ctx)
         guild_name = self.get_guild_name(ctx)
@@ -430,6 +528,12 @@ class BankAccount(commands.Cog):
             return user.wallet, user.bank
 
     async def open_account(self, ctx) -> (int, int):
+        '''
+        Open new account for ctx
+        
+        Attributes:
+            ctx: user who sent command
+        '''
         guild_id = self.get_guild_id(ctx)
         guild_name = self.get_guild_name(ctx)
         user_id = self.get_user_id(ctx)
@@ -463,6 +567,12 @@ class BankAccount(commands.Cog):
     
     @commands.command(name='test', help='Used for testing commands. Development mode only')
     async def test(self, ctx):
+        '''
+        Test command method
+        
+        Attributes:
+            ctx: user who sent command
+        '''
         guild_id = self.get_guild_id(ctx)
         guild_name = self.get_guild_name(ctx)
         user_id = self.get_user_id(ctx)
@@ -479,6 +589,12 @@ class BankAccount(commands.Cog):
             return user.wallet, user.bank
 
     async def get_users(self, guild_id):
+        '''
+        Get all users from database.
+        
+        Attributes:
+            ctx: user who sent command
+        '''
         conn = DbConn()
         return conn.get_users_by_server(guild_id)
 

@@ -30,10 +30,6 @@ PROD_MODE = False
 
 
 intents = discord.Intents.all()
-#intents.members = True
-#intents.guilds = True
-#intents.messages = True
-#intents.bans = True
 client = discord.Client()
 bot = Bot(command_prefix='!', intents=intents)
 
@@ -59,6 +55,21 @@ async def on_command_completion(ctx):
     executedCommand = str(split[0])
     print(
         f"Executed {executedCommand} command in {ctx.guild.name} (ID: {ctx.message.guild.id}) by {ctx.message.author} (ID: {ctx.message.author.id})")
+
+@client.event
+async def on_ready(self):
+    Channel = client.get_channel('YOUR_CHANNEL_ID')
+    Text= "YOUR_MESSAGE_HERE"
+    Moji = await client.send_message(Channel, Text)
+    await client.add_reaction(Moji, emoji='🏃')
+@client.event
+async def on_reaction_add(self, reaction, user):
+    Channel = client.get_channel('YOUR_CHANNEL_ID')
+    if reaction.message.channel.id != Channel:
+        return
+    if reaction.emoji == "🏃":
+        Role = discord.utils.get(user.server.roles, name="YOUR_ROLE_NAME_HERE")
+    await client.add_roles(user, Role)
 
 @bot.command()
 async def load(ctx, extension):
