@@ -428,7 +428,7 @@ class BankAccount(commands.Cog):
             conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
             return STARTING_MONEY, STARTING_MONEY
         else:
-            conn.update_user_money(user_id, guild_id, int(new_wallet), int(new_bank), username)
+            conn.update_user_money(user_id, guild_id, int(new_wallet), int(new_bank))
             return int(new_wallet), int(new_bank)
         return True
 
@@ -470,7 +470,7 @@ class BankAccount(commands.Cog):
             conn.add_user(user_id, guild_id, wallet, bank, username)
             return wallet, bank
         else:
-            conn.update_user_money(user_id, guild_id, wallet, bank, username)
+            conn.update_user_money(user_id, guild_id, wallet, bank)
             return wallet, bank
         return True
             

@@ -3,6 +3,7 @@ from discord.ext.commands import Bot
 from cogs.bot_parts.apis import Apis
 from cogs.commands import Commands
 from helpers.settings import Settings
+from helpers.stats import Stats
 import discord
 import random
 import re
@@ -44,32 +45,29 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
+    '''
+        Welcome new users to server.
+        
+        Attributes:
+            member: person to welcome
+        '''
     server = member.server
     fmt = 'Welcome {0.mention} to {1.name}!'
     await member.send(server, fmt.format(member, server))
 
 @bot.event
 async def on_command_completion(ctx):
+    '''
+        Print commands as they are executed.
+        
+        Attributes:
+            ctx: user who sent command
+        '''
     fullCommandName = ctx.command.qualified_name
     split = fullCommandName.split(" ")
     executedCommand = str(split[0])
     print(
         f"Executed {executedCommand} command in {ctx.guild.name} (ID: {ctx.message.guild.id}) by {ctx.message.author} (ID: {ctx.message.author.id})")
-
-@client.event
-async def on_ready(self):
-    Channel = client.get_channel('YOUR_CHANNEL_ID')
-    Text= "YOUR_MESSAGE_HERE"
-    Moji = await client.send_message(Channel, Text)
-    await client.add_reaction(Moji, emoji='🏃')
-@client.event
-async def on_reaction_add(self, reaction, user):
-    Channel = client.get_channel('YOUR_CHANNEL_ID')
-    if reaction.message.channel.id != Channel:
-        return
-    if reaction.emoji == "🏃":
-        Role = discord.utils.get(user.server.roles, name="YOUR_ROLE_NAME_HERE")
-    await client.add_roles(user, Role)
 
 @bot.command()
 async def load(ctx, extension):
@@ -81,6 +79,12 @@ async def unload(ctx, extension):
 
 @bot.event
 async def on_message(message):
+    '''
+        General message listener
+        
+        Attributes:
+            message: the message to check
+    '''
     global ENABLED
     if '!startbot' in message.content:
         ENABLED = True
@@ -101,6 +105,7 @@ async def on_message(message):
         items = msg.split(' ')
         for item in items:
             if item.upper() in coins:
+                # TODO: This should be moved...
                 old_coin = api.get_crypto_price(item.upper())
                 price = old_coin.price
                 midPrice = old_coin.midPrice
@@ -150,13 +155,17 @@ async def on_message(message):
             else:
                 await message.channel.send(', '.join(result))
 
+        stats = Stats(bot)
+
         await bot.process_commands(message)
+        await stats.update_stats(message)
 
-
+# Activate all commands in cog classes
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
 
+# Run the bot
 if __name__ == '__main__':
     ENABLED = True
     settings = Settings(PROD_MODE)
