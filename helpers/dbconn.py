@@ -28,6 +28,31 @@ class DbConn:
                     print (str(row[0]) + " " + str(row[1]))
                     row = cursor.fetchone()
 
+    def __insert_experience(self, user_id, server_id, username, wallet, bank):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(
+                        """
+                            INSERT INTO dbo.UserExperience (server_id, user_id, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        """, server_id, user_id, bank, wallet, 0, 0, 0, 0, 0, datetime.datetime.now())
+                    return
+                except Exception as e:
+                    print("Add user exp failed")
+                    pass
+                return
+
+    def __insert_user(self, user_id, username):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute("INSERT INTO dbo.Users (user_id, username) VALUES (?, ?);", user_id, username)
+                    return
+                except Exception as e:
+                    print("Add user failed")
+                    pass
+                return
     
     def add_server(self, server_id, server_name):
         with self.__connect() as conn:
@@ -43,25 +68,20 @@ class DbConn:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, wallet, bank)
+                    self.__insert_user(user_id, server_id, username,wallet, bank)
                     return True
                 return False
-
-    def __insert_user(self, user_id, server_id, wallet, bank):
-        with self.__connect() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO dbo.Users (user_id, username) VALUES (?, ?);", user_id, username)
-                cursor.execute(
-                    """
-                        INSERT INTO dbo.UserExperience (server_id, user_id, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                    """, user_id, server_id, bank, wallet, 0, 0, 0, 0, 0, time.datetime.now)
-                return
 
     def get_user(self, user_id, server_id):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM dbo.UserExperience WHERE user_id={} AND server_id={};".format(user_id, server_id))
+                cursor.execute(
+                    """
+                        SELECT * FROM dbo.UserExperience 
+                        FULL OUTER JOIN dbo.Users 
+                        ON dbo.UserExperience.user_id = dbo.Users.user_id 
+                        WHERE user_id={} AND server_id={};
+                    """.format(user_id, server_id))
                 user = cursor.fetchone()
                 return user
         return None
@@ -82,13 +102,13 @@ class DbConn:
                 return servers
         return None
 
-    def update_user_money(self, user_id, server_id, wallet, bank):
+    def update_user_money(self, user_id, server_id, username, wallet, bank):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, wallet, bank)
+                    self.__insert_user(user_id, server_id, username,wallet, bank)
                     return
                 else:
                     cursor.execute(
@@ -96,17 +116,17 @@ class DbConn:
                             UPDATE dbo.UserExperience 
                             SET bank=?, wallet=?
                             WHERE user_id=? and server_id=?
-                        """, bank, wallet, user_id, server_id)
+                        """, int(bank), int(wallet), user_id, server_id)
                     return
 
-    def update_user_messages(self, user_id, server_id, messages):
+    def update_user_messages(self, user_id, server_id, username, messages):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -117,14 +137,14 @@ class DbConn:
                         """, messages, user_id, server_id)
                     return
 
-    def update_user_level(self, user_id, server_id, level):
+    def update_user_level(self, user_id, server_id, username, level):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -135,14 +155,14 @@ class DbConn:
                         """, level, user_id, server_id)
                     return
 
-    def update_user_experience(self, user_id, server_id, experience):
+    def update_user_experience(self, user_id, server_id, username, experience):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -153,14 +173,14 @@ class DbConn:
                         """, experience, user_id, server_id)
                     return
 
-    def update_user_emoji_sent(self, user_id, server_id, emojis):
+    def update_user_emoji_sent(self, user_id, server_id, username, emojis):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -171,14 +191,14 @@ class DbConn:
                         """, emojis, user_id, server_id)
                     return
 
-    def update_user_emoji_sent(self, user_id, server_id, reactions_received):
+    def update_user_emoji_sent(self, user_id, server_id, username, reactions_received):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -189,14 +209,14 @@ class DbConn:
                         """, reactions_received, user_id, server_id)
                     return
 
-    def update_user_updated_date(self, user_id, server_id, updated_date):
+    def update_user_updated_date(self, user_id, server_id, username, updated_date):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -207,14 +227,14 @@ class DbConn:
                         """, updated_date, user_id, server_id)
                     return
 
-    def update_user_values(self, user_id, server_id, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated):
+    def update_user_values(self, user_id, server_id, username, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated):
         global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.Users WHERE user_id={};".format(user_id))
                 user = cursor.fetchone()
                 if user is None:
-                    self.__insert_user(user_id, server_id, STARTING_MONEY, STARTING_MONEY)
+                    self.__insert_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return
                 else:
                     cursor.execute(
@@ -233,11 +253,17 @@ class DbConn:
                 return users
         return None
         
-    def get_user_in_server(self, user_id, server_id):
+    def get_user_in_server(self, user_id, server_id, username):
+        global STARTING_MONEY
         with self.__connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM dbo.UserExperience WHERE user_id={} AND server_id={};".format(user_id, server_id))
+                cursor.execute("SELECT * FROM dbo.UserExperience WHERE server_id={} AND user_id={};".format(server_id, user_id))
                 user = cursor.fetchone()
+                if user is None:
+                    self.__insert_user(user_id, username)
+                    self.__insert_experience(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
+                    cursor.execute("SELECT * FROM dbo.UserExperience WHERE server_id={} AND user_id={};".format(server_id, user_id))
+                    user = cursor.fetchone()
                 return user
         return None
         
@@ -271,7 +297,7 @@ class DbConn:
     def add_member(self, server_id, user_id, username, ):
         conn = self.__connect()
 
-if __name__ == '__main__':
-    con = DbConn()
-    #con.connect()
-    con.add_server(861051867249639456, "Kyyysserver")
+#if __name__ == '__main__':
+#    con = DbConn()
+#    #con.connect()
+#    con.add_server(861051867249639456, "Kyyysserver")

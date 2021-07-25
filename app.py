@@ -1,3 +1,5 @@
+
+
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 from cogs.bot_parts.apis import Apis
@@ -12,8 +14,10 @@ import random
 import os
 import platform
 from distutils.command.config import config
+import matplotlib
 import matplotlib.pyplot as plt
 import json
+from helpers.dbconn import DbConn
 
 coins = ['AUR','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo', 'howdy']
@@ -22,6 +26,7 @@ description = '''None of your business, mkay'''
 BOT_ID = ""
 ENABLED = True
 settings = None
+STARTING_MONEY = 500
 
 
 #################################################
@@ -51,6 +56,8 @@ async def on_member_join(member):
         Attributes:
             member: person to welcome
         '''
+    conn = DbConn()
+    conn.add_user(member.user.id, member.guild.id, STARTING_MONEY, STARTING_MONEY, member.user.name)
     server = member.server
     fmt = 'Welcome {0.mention} to {1.name}!'
     await member.send(server, fmt.format(member, server))
@@ -108,9 +115,6 @@ async def on_message(message):
                 # TODO: This should be moved...
                 old_coin = api.get_crypto_price(item.upper())
                 price = old_coin.price
-                midPrice = old_coin.midPrice
-                olderPrice = old_coin.olderPrice
-                oldestPrice = old_coin.oldestPrice
                 last_time = old_coin.dateAdded
                 plt.figure(figsize=(1,1))
                 fig, ax = plt.subplots()
@@ -118,15 +122,12 @@ async def on_message(message):
                 plt.legend(facecolor="white", edgecolor="yellow")
                 ax.set_facecolor("#2F3136")
                 fig.set_facecolor("#2F3136")
-                leg = plt.legend()
-                for line, text in leg.get_texts():
-                    text.set_color('white')
-                    text.set_weight('bold')
-                plt.plot([1, 2, 3, 4],[oldestPrice, olderPrice, midPrice, price], label=f'{item.upper()}')
-                plt.legend()
+                frame1 = plt.gca()
+                frame1.axes.get_xaxis().set_visible(False)
+                plt.plot([1, 2, 3, 4],[old_coin.oldestPrice, old_coin.olderPrice, old_coin.midPrice, old_coin.price], label=f'{item.upper()}')
                 plt.savefig(fname='figure.jpg', edgecolor='w')
-                diff = price - midPrice
-                percent_change = diff / midPrice * 100
+                diff = price - old_coin.midPrice
+                percent_change = diff / old_coin.midPrice * 100
                 await message.channel.send(f'The current price of {item.upper()} is ${price}. It changed by {percent_change:.3f}% since last check.', file=discord.File('./figure.jpg'))
 
         if 'yay' in msg.split(' '):

@@ -10,7 +10,7 @@ import random
 from cogs.commands import Commands
 from discord.ext.commands.errors import MissingPermissions
 import re
-from emoji import UNICODE_EMOJI
+#from emoji import UNICODE_EMOJI
 
 
 class Stats:
@@ -25,18 +25,18 @@ class Stats:
 
     async def update_stats(self, message):
         conn = DbConn()
-        user = conn.get_user(message.author.id, message.guild.id)
-        new_messages = user.messages + 1
-        new_exp = user.experience + 1
-        new_level = self.get_level(user.messages)
-        emojis = 0
-        for item in message.split(" "):
-            if item in UNICODE_EMOJI['en']:
-                emojis = 1
-                break
-        new_emojis = user.emojiCount + emojis
-        new_date = time.datetime.now()
-        conn.update_user_values(message.author.id, message.guild.id, user.bank, user.wallet, new_messages, new_level, new_exp, new_emojis, 0, new_date)
+        #user = conn.get_user_in_server(message.author.name, message.author.id, message.guild.id)
+        #new_messages = user.messages + 1
+        #new_exp = user.experience + 1
+        #new_level = self.get_level(user.messages)
+        ##emojis = 0
+        ##for item in message.split(" "):
+        ##    if item in UNICODE_EMOJI['en']:
+        ##        emojis = 1
+        ##        break
+        ##new_emojis = user.emojiCount + emojis
+        #new_date = time.datetime.now()
+        #conn.update_user_values(message.author.id, message.guild.id, message.author.name, user.bank, user.wallet, new_messages, new_level, new_exp, 0, 0, new_date)
         return
     
     async def get_level(self, messages):
@@ -61,6 +61,18 @@ class Stats:
         if messages > 1500:
             return 10
         return 0
+
+    def get_guild_id(self, ctx):
+        guild_id = ctx.message.guild.id
+        return guild_id
+
+    def get_guild_name(self, ctx):
+        guild_name = ctx.message.guild.name
+        return guild_name
+
+    def get_user_id(self, ctx):
+        user_id = ctx.message.author.id
+        return user_id
 
 def setup(bot):
     bot.add_cog(DiscRoles(bot))
