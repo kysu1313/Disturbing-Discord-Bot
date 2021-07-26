@@ -2,6 +2,7 @@ import os
 import datetime
 import pyodbc
 import time
+from .redisCache import BotCache
 
 STARTING_MONEY = 500
 
@@ -13,20 +14,33 @@ class DbConn:
         self.dbName = os.environ.get('DB_NAME')
         self.driver = '{ODBC Driver 17 for SQL Server}'
         self.conn = None
+        self.rconn = BotCache()
 
     def __connect(self):
-
         self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password)
         return self.conn
 
-        #with pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.server+';PORT=1433;DATABASE='+self.database+';UID='+self.username+';PWD='+ self.password) as conn:
-        with self.conn as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT TOP 3 name, collation_name FROM sys.databases;")
-                row = cursor.fetchone()
-                while row:
-                    print (str(row[0]) + " " + str(row[1]))
-                    row = cursor.fetchone()
+    def __update_cache_user(self, user_id, server_id, bank=None, wallet=None, messages=None, userLevel=None, experience=None, emojiSent=None, reactionsReceived=None, dateUpdated=None):
+        data = {}
+        key = user_id + ":" + server_id
+        if bank is not None:
+            data[key]["bank"] = bank
+        if wallet is not None:
+            data[key]["wallet"] = wallet
+        if messages is not None:
+            data[key]["messages"] = messages
+        if userLevel is not None:
+            data[key]["userLevel"] = userLevel
+        if experience is not None:
+            data[key]["experience"] = experience
+        if emojiSent is not None:
+            data[key]["emojiSent"] = emojiSent
+        if reactionsReceived is not None:
+            data[key]["reactionsReceived"] = reactionsReceived
+        if dateUpdated is not None:
+            data[key]["dateUpdated"] = dateUpdated
+
+        self.rconn.update_data(key, data)
 
     def __insert_experience(self, user_id, server_id, username, wallet, bank):
         with self.__connect() as conn:
@@ -69,6 +83,7 @@ class DbConn:
                 user = cursor.fetchone()
                 if user is None:
                     self.__insert_user(user_id, server_id, username,wallet, bank)
+                    self.__update_cache_user(user_id, server_id, username,STARTING_MONEY, STARTING_MONEY)
                     return True
                 return False
 
