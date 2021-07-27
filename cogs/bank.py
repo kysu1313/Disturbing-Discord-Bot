@@ -577,15 +577,21 @@ class BankAccount(commands.Cog):
         user_id = self.get_user_id(ctx)
         username = self.get_username(ctx)
         conn = DbConn()
-        server = conn.get_server(guild_id)
-        if server is None:
-            conn.add_server(guild_id, guild_name)
-        user = conn.get_user_in_server(ctx.message.author.id, guild_id, ctx.message.author.name)
-        if user is None:
-            conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
-            return STARTING_MONEY, STARTING_MONEY
-        else:
-            return user.wallet, user.bank
+        
+        conn.update_user_money(user_id, guild_id, username, 2000, 2000)
+        user = conn.get_user(user_id, guild_id)
+
+        user.print()
+
+
+        #if server is None:
+        #    conn.add_server(guild_id, guild_name)
+        #user = conn.get_user_in_server(ctx.message.author.id, guild_id, ctx.message.author.name)
+        #if user is None:
+        #    conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
+        #    return STARTING_MONEY, STARTING_MONEY
+        #else:
+        #    return user.wallet, user.bank
 
     async def get_users(self, guild_id):
         '''

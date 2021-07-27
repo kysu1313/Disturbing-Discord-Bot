@@ -1,10 +1,11 @@
 
 # parent image
-FROM python:3.9
+FROM python
 
 #RUN mkdir /app
-WORKDIR /
+WORKDIR D:/PROGRAMS/Python/DiscBot3/
 ADD . /
+
 
 # install FreeTDS and dependencies
 RUN apt-get update \
@@ -30,3 +31,4 @@ COPY . /
 EXPOSE 5000
 # run app.py upon container launch
 CMD ["python3", "app.py"]
+
