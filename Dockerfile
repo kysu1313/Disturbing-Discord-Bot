@@ -1,11 +1,11 @@
 
 # parent image
-FROM python
+FROM python:3.9
 
 #RUN mkdir /app
-WORKDIR D:/PROGRAMS/Python/DiscBot3/
-ADD . /
-
+WORKDIR /
+ADD / .
+COPY . /
 
 # install FreeTDS and dependencies
 RUN apt-get update \
@@ -22,13 +22,16 @@ Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
 
-# install pyodbc (and, optionally, sqlalchemy)
+#RUN pip freeze > requirements.txt
+
+# install pyodbc
 RUN pip install --trusted-host pypi.python.org pyodbc==4.0.26 sqlalchemy==1.3.5
 RUN pip install -r requirements.txt
 
-COPY . /
+
 
 EXPOSE 5000
 # run app.py upon container launch
 CMD ["python3", "app.py"]
 
+# docker run -it --mount type=bind,source=$PWD,destination=$PWD ghcr.io/quick-lint/quick-lint-js-github-builder:v1

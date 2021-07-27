@@ -2,7 +2,7 @@ import os
 import datetime
 import pyodbc
 import time
-from .redisCache import BotCache
+#from .redisCache import BotCache
 from .user import User
 import ast
 

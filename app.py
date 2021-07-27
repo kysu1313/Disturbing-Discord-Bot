@@ -94,6 +94,7 @@ async def on_message(message):
     '''
     global ENABLED
     if '!startbot' in message.content:
+        await message.channel.send("I'm alive! 😃")
         ENABLED = True
     if ENABLED:
         if message.author == bot.user:
@@ -106,6 +107,7 @@ async def on_message(message):
 
         if '!stopbot' in msg:
             ENABLED = False
+            await message.channel.send("ok, I'll be quiet 😔")
             return 
 
         api = Apis()
@@ -171,6 +173,11 @@ if __name__ == '__main__':
     ENABLED = True
     settings = Settings(PROD_MODE)
     TOKEN = settings.get_bot_token()
+
+    print("TOKEN: ", TOKEN)
+    print("TOKEN: ", TOKEN)
+    print("TOKEN: ", TOKEN)
+    
     bot.run(TOKEN)
 
 
