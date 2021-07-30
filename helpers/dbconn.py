@@ -14,11 +14,11 @@ class DbConn:
         self.username = os.environ.get('DB_USERNAME')
         self.password = os.environ.get('DB_PASSWORD')
         self.dbName = os.environ.get('DB_NAME')
-        self.driver = '{ODBC Driver 17 for SQL Server}'
+        self.driver = '{FreeTDS}'
         self.conn = None
 
     def __connect(self):
-        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password)
+        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password+';TDS_Version=7.2')
         return self.conn
 
     def __insert_experience(self, user_id, server_id, username, wallet, bank):
@@ -27,7 +27,7 @@ class DbConn:
                 try:
                     cursor.execute(
                         """
-                            INSERT INTO dbo.UserExperience (server_id, user_id, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated) 
+                            INSERT INTO dbo.UserExperience (server_id, user_id, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                         """, server_id, user_id, bank, wallet, 0, 0, 0, 0, 0, datetime.datetime.now())
                     return
@@ -46,7 +46,7 @@ class DbConn:
                     print("Add user failed")
                     pass
                 return
-    
+
     def add_server(self, server_id, server_name):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
@@ -71,9 +71,9 @@ class DbConn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                        SELECT * FROM dbo.UserExperience 
-                        FULL OUTER JOIN dbo.Users 
-                        ON dbo.UserExperience.user_id = dbo.Users.user_id 
+                        SELECT * FROM dbo.UserExperience
+                        FULL OUTER JOIN dbo.Users
+                        ON dbo.UserExperience.user_id = dbo.Users.user_id
                         WHERE user_id={} AND server_id={};
                     """.format(user_id, server_id))
                 user = cursor.fetchone()
@@ -87,7 +87,7 @@ class DbConn:
                 server = cursor.fetchone()
                 return server
         return None
-        
+
     def get_all_servers(self):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
@@ -107,7 +107,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET bank=?, wallet=?
                             WHERE user_id=? and server_id=?
                         """, int(bank), int(wallet), user_id, server_id)
@@ -125,7 +125,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET messages=?
                             WHERE user_id=? and server_id=?
                         """, messages, user_id, server_id)
@@ -143,7 +143,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET userLevel=?
                             WHERE user_id=? and server_id=?
                         """, level, user_id, server_id)
@@ -161,7 +161,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET experience=?
                             WHERE user_id=? and server_id=?
                         """, experience, user_id, server_id)
@@ -179,7 +179,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET emojiSent=?
                             WHERE user_id=? and server_id=?
                         """, emojis, user_id, server_id)
@@ -197,7 +197,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET reactionsReceived=?
                             WHERE user_id=? and server_id=?
                         """, reactions_received, user_id, server_id)
@@ -215,7 +215,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET updatedDate=?
                             WHERE user_id=? and server_id=?
                         """, updated_date, user_id, server_id)
@@ -233,7 +233,7 @@ class DbConn:
                 else:
                     cursor.execute(
                         """
-                            UPDATE dbo.UserExperience 
+                            UPDATE dbo.UserExperience
                             SET bank=?, wallet=?, messages=?, userLevel=?, experience=?, emojiSent=?, reactionsReceived=?, updatedDate=?
                             WHERE user_id=? and server_id=?
                         """, bank, wallet, messages, userLevel, experience, emojiSent, reactionsReceived, dateUpdated, user_id, server_id)
@@ -246,7 +246,7 @@ class DbConn:
                 users = cursor.fetchall()
                 return users
         return None
-        
+
     def get_user_in_server(self, user_id, server_id, username):
         global STARTING_MONEY
         with self.__connect() as conn:
@@ -260,7 +260,7 @@ class DbConn:
                     user = cursor.fetchone()
                 return user
         return None
-        
+
     def insert_crypto(self, coin_name, price):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
@@ -276,7 +276,7 @@ class DbConn:
                 coin = cursor.fetchone()
                 cursor.execute("UPDATE dbo.cryptoPrices SET price=?, midPrice=?, olderPrice=?, oldestPrice=?  WHERE coinName=?", new_price, coin.price, coin.midPrice, coin.olderPrice, coin_name)
                 return coin
-        
+
     def get_crypto(self, coin_name):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
@@ -286,8 +286,8 @@ class DbConn:
                     return coin
                 except Exception as e:
                     return None
-        
-        
+
+
     def add_member(self, server_id, user_id, username, ):
         conn = self.__connect()
 
