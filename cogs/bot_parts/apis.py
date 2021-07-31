@@ -1,6 +1,7 @@
 import requests
 import json
 import cryptocompare
+from helpers.dbconn import DbConn
 
 class Apis:
     def get_joke(self):
@@ -22,8 +23,18 @@ class Apis:
             return None
 
     def get_crypto_price(self, coin):
-        price = cryptocompare.get_price(coin, 'USD')
-        return price
+        curr_coin = cryptocompare.get_price(coin, 'USD')
+        curr_price = 0
+        if curr_coin is not None:
+            curr_price = curr_coin.get(coin)['USD']
+        old_price = curr_price
+        conn = DbConn()
+        exists = conn.get_crypto(coin.upper())
+        if exists is None:
+            old_coin = conn.insert_crypto(coin, curr_price)
+        else:
+            old_coin = conn.get_and_update_crypto(coin.upper(), curr_price)
+        return old_coin
 
     def get_skills(self, name):
         try:
@@ -57,6 +68,36 @@ class Apis:
                     name = "random doggy"
                 url = data[0]["url"]
             return name, url
+        except Exception as e:
+            print("Error: {}".format(e))
+            return None
+
+    def get_ascii(self, text, font=None):
+        try:
+            response = None
+            if font is not None:
+                response = requests.get("https://artii.herokuapp.com/make?text={}&font={}".format(text, font))
+            else:
+                response = requests.get("https://artii.herokuapp.com/make?text={}".format(text))
+            result = ""
+            if response is not None:
+                result = response.text
+            return result
+        except Exception as e:
+            print("Error: {}".format(e))
+            return None
+
+    def get_fonts(self):
+        # https://artii.herokuapp.com/fonts_list
+        try:
+            response = requests.get("https://artii.herokuapp.com/fonts_list")
+            fonts = []
+            if response is not None:
+                data = response.text.split('\n')
+                for font in data:
+                    if "_" not in font:
+                        fonts.append(font)
+            return fonts
         except Exception as e:
             print("Error: {}".format(e))
             return None

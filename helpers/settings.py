@@ -7,12 +7,13 @@ class Settings:
         self.token = ""
         self.id = ""
         self.members = []
+        self.get_bot_id()
 
     def get_bot_id(self):
         if self.is_production:
-            self.id = os.environ['bot-id']
+            self.id = os.environ.get('bot_id')
         else:
-            self.id = os.environ['test-discord-token']
+            self.id = os.environ.get('test_bot_id')
         return self.id
 
     def get_is_production(self):
@@ -20,7 +21,7 @@ class Settings:
 
     def get_bot_token(self):
         if self.is_production:
-            self.token = os.environ['discord-token']
+            self.token = os.environ.get('discord_token')
         else:
-            self.token = os.environ['test-discord-token']
+            self.token = os.environ.get('test_discord_token')
         return self.token
