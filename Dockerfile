@@ -50,6 +50,7 @@ Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
 
 RUN apt-get install --reinstall build-essential -y
+RUN apt-get install freetds-common freetds-bin tdsodbc
 
 RUN pip3 install --trusted-host pypi.python.org pyodbc sqlalchemy==1.3.5
 RUN pip3 install yarl==1.4.0
