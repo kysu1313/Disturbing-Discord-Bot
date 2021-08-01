@@ -172,7 +172,7 @@ if __name__ == '__main__':
     ENABLED = True
     settings = Settings(PROD_MODE)
     TOKEN = settings.get_bot_token()
-    print("Setting tokens")
+    print("Setting token env vars")
     bot.run(TOKEN)
 
     print("Tokens set successfully")
