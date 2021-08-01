@@ -174,10 +174,6 @@ if __name__ == '__main__':
     settings = Settings(PROD_MODE)
     TOKEN = settings.get_bot_token()
 
-    print("TOKEN: ", TOKEN)
-    print("TOKEN: ", TOKEN)
-    print("TOKEN: ", TOKEN)
-    
     bot.run(TOKEN)
 
 
