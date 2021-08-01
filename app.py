@@ -28,7 +28,7 @@ ENABLED = True
 settings = None
 STARTING_MONEY = 500
 
-
+# test
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
