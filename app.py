@@ -87,7 +87,7 @@ async def unload(ctx, extension):
 @bot.event
 async def on_message(message):
     '''
-        General message listener
+        General message listener.
         Attributes:
             message: the message to check
     '''
