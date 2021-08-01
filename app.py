@@ -30,7 +30,7 @@ STARTING_MONEY = 500
 
 
 #################################################
-####### IMPORTANT: CHANGE FOR PRODUCTION ######## 
+####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
 PROD_MODE = False
 
@@ -52,7 +52,7 @@ async def on_ready():
 async def on_member_join(member):
     '''
         Welcome new users to server.
-        
+
         Attributes:
             member: person to welcome
         '''
@@ -66,7 +66,7 @@ async def on_member_join(member):
 async def on_command_completion(ctx):
     '''
         Print commands as they are executed.
-        
+
         Attributes:
             ctx: user who sent command
         '''
@@ -88,7 +88,6 @@ async def unload(ctx, extension):
 async def on_message(message):
     '''
         General message listener
-        
         Attributes:
             message: the message to check
     '''
@@ -100,7 +99,7 @@ async def on_message(message):
         if message.author == bot.user:
             return
 
-        if message.author.name == "Lil-Bot" or message.author.name == "Test-Bot": 
+        if message.author.name == "Lil-Bot" or message.author.name == "Test-Bot":
             return
 
         msg = message.content.lower()
@@ -108,7 +107,7 @@ async def on_message(message):
         if '!stopbot' in msg:
             ENABLED = False
             await message.channel.send("ok, I'll be quiet 😔")
-            return 
+            return
 
         api = Apis()
         items = msg.split(' ')
@@ -175,6 +174,6 @@ if __name__ == '__main__':
     TOKEN = settings.get_bot_token()
 
     bot.run(TOKEN)
-    
+
     print("Tokens set successfully")
 
