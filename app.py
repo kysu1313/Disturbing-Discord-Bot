@@ -175,5 +175,6 @@ if __name__ == '__main__':
     TOKEN = settings.get_bot_token()
 
     bot.run(TOKEN)
-
+    
+    print("Tokens set successfully")
 
