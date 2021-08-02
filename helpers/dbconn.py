@@ -18,7 +18,7 @@ class DbConn:
         self.conn = None
 
     def __connect(self):
-        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password+';TDS_Version=7.2')
+        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password+';TDS_Version=7.2;')  #TDS_Version=7.2
         return self.conn
 
     def __insert_experience(self, user_id, server_id, username, wallet, bank):

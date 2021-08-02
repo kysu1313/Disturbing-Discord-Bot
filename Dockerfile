@@ -27,7 +27,9 @@ RUN apt-get update \
  && apt-get install apt-utils -y \
  && apt-get install gcc
 
+# populate "ocbcinst.ini"
 RUN echo "[FreeTDS]\n\
+TDS_Version = '7.3'\n\
 Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
