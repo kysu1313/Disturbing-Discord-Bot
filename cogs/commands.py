@@ -11,7 +11,7 @@ from helpers.settings import Settings
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Settings() 
+        self.settings = Settings()
         self.bot_id = self.settings.id
         if not self.settings.get_is_production():
             bot.remove_command("joke")
@@ -23,7 +23,7 @@ class Commands(commands.Cog):
             bot.remove_command("server")
             bot.remove_command("roll")
 
-        
+
 
     # Events
     @commands.Cog.listener()
@@ -158,7 +158,7 @@ class Commands(commands.Cog):
     @commands.command(name='server', help='Returns server information')
     async def fetchServerInfo(self, context):
         guild = context.guild
-        
+
         await context.send(f'Server Name: {guild.name}')
         await context.send(f'Server Size: {len(guild.members)}')
         await context.send(f'Server Name: {guild.owner.display_name}')

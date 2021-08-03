@@ -14,11 +14,15 @@ class DbConn:
         self.username = os.environ.get('DB_USERNAME')
         self.password = os.environ.get('DB_PASSWORD')
         self.dbName = os.environ.get('DB_NAME')
-        self.driver = '{FreeTDS}'
+        #self.driver = '{FreeTDS}'
+        self.driver = '{ODBC Driver 17 for SQL Server}'
+
+        #self.tds_version = ';TDS_Version=7.2;'
+        self.tds_version = ''
         self.conn = None
 
     def __connect(self):
-        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password+';TDS_Version=7.2;')  #TDS_Version=7.2
+        self.conn = pyodbc.connect('DRIVER='+self.driver+';SERVER='+self.host+';PORT=1433;DATABASE='+self.dbName+';UID='+self.username+';PWD='+ self.password+self.tds_version)  #TDS_Version=7.2
         return self.conn
 
     def __insert_experience(self, user_id, server_id, username, wallet, bank):
@@ -47,13 +51,30 @@ class DbConn:
                     pass
                 return
 
-    def add_server(self, server_id, server_name):
+    def add_server(self, server_id, server_name, slowmode, slowtime):
         with self.__connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM dbo.ServerTable WHERE server_id={};".format(server_id))
                 server = cursor.fetchone()
                 if server is None:
-                    cursor.execute("INSERT INTO dbo.ServerTable (server_id, server_name) VALUES (?, ?);", server_id, server_name)
+                    cursor.execute("INSERT INTO dbo.ServerTable (server_id, server_name, slowmode, slowtime) VALUES (?, ?, ?, ?);", server_id, server_name, slowmode, slowtime)
+
+    def get_server_slow_mode(self, server_id) -> (bool, int):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM dbo.ServerTable WHERE server_id={};".format(server_id))
+                server = cursor.fetchone()
+                return bool(server.slow_mode), server.slow_time
+
+    def set_server_slow_mode(self, server_id, slowmode, slowtime):
+        with self.__connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                        """
+                            UPDATE dbo.ServerTable
+                            SET slow_mode=?, slow_time=?
+                            WHERE server_id=?
+                        """, int(slowmode), int(slowtime), server_id)
 
     def add_user(self, user_id, server_id, wallet, bank, username):
         with self.__connect() as conn:

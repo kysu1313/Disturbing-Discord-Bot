@@ -1,5 +1,6 @@
 
 
+from discord.ext.commands import has_permissions, CheckFailure
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 from cogs.bot_parts.apis import Apis
@@ -18,6 +19,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import json
 from helpers.dbconn import DbConn
+from cogs.controls import Controls
 
 coins = ['AUR','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hiya', 'hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo', 'howdy']
@@ -27,17 +29,23 @@ BOT_ID = ""
 ENABLED = True
 settings = None
 STARTING_MONEY = 500
+LAST_EVENTS = {}
+STOP_SPAM = {}
+SLOW_MODE = False
+MESSAGE_INTERVAL = 0
 
-# test
+
 #################################################
 ####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
 PROD_MODE = False
+DOCKER = False
 
 
 intents = discord.Intents.all()
 client = discord.Client()
 bot = Bot(command_prefix='!', intents=intents)
+
 
 @bot.event
 async def on_ready():
@@ -51,7 +59,7 @@ async def on_ready():
 @bot.event
 async def on_member_join(member):
     '''
-        Welcome new users to server.
+        Welcome new members to server.
 
         Attributes:
             member: person to welcome
@@ -84,6 +92,35 @@ async def load(ctx, extension):
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')
 
+@has_permissions(administrator=True)
+@bot.command()
+async def setdelay(ctx, seconds: int):
+    global SLOW_MODE, MESSAGE_INTERVAL
+    server_id =  ctx.message.guild.id
+    conn = DbConn()
+    enable = False
+    if seconds == 0:
+        enable = False
+        SLOW_MODE = False
+        MESSAGE_INTERVAL = 0
+    elif seconds > 120:
+        enable = True
+        SLOW_MODE = True
+        time = 120
+        MESSAGE_INTERVAL = time
+    else:
+        enable = True
+        SLOW_MODE = True
+        MESSAGE_INTERVAL = seconds
+        time = seconds
+    conn.set_server_slow_mode(server_id, enable, time)
+    await ctx.channel.edit(slowmode_delay=seconds)
+    await ctx.send(f"Set the slowmode delay in this channel to {seconds} seconds!")
+
+async def get_slowmode(server_id):
+    conn = DbConn()
+    return await conn.get_server_slow_mode(server_id)
+
 @bot.event
 async def on_message(message):
     '''
@@ -91,11 +128,26 @@ async def on_message(message):
         Attributes:
             message: the message to check
     '''
-    global ENABLED
+    global ENABLED, LAST_EVENTS, SLOW_MODE, MESSAGE_INTERVAL, STOP_SPAM
     if '!startbot' in message.content:
         await message.channel.send("I'm alive! 😃")
         ENABLED = True
     if ENABLED:
+
+        user_id = message.author.id
+        if SLOW_MODE and user_id in LAST_EVENTS.keys() and not (message.author.name == "Lil-Bot" or message.author.name == "Test-Bot"):
+            time_delta = (time.time() - LAST_EVENTS[user_id])
+            if time_delta < MESSAGE_INTERVAL:
+                STOP_SPAM[user_id] = True
+            else:
+                STOP_SPAM[user_id] = False
+                LAST_EVENTS[user_id] = time.time()
+        else:
+            LAST_EVENTS[user_id] = time.time()
+
+        if user_id in STOP_SPAM and STOP_SPAM[user_id]:
+            return
+
         if message.author == bot.user:
             return
 
@@ -158,7 +210,6 @@ async def on_message(message):
                 await message.channel.send(', '.join(result))
 
         stats = Stats(bot)
-
         await bot.process_commands(message)
         await stats.update_stats(message)
 
@@ -174,6 +225,5 @@ if __name__ == '__main__':
     TOKEN = settings.get_bot_token()
     print("Setting tokens")
     bot.run(TOKEN)
-
     print("Tokens set successfully")
 

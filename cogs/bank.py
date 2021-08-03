@@ -71,9 +71,9 @@ class BankAccount(commands.Cog):
         member = [a for a in members if a.name.lower() == username.lower()][0]
         if member is not None:
             wallet, bank = await self.get_simple_bank(ctx, member, member.id)
-            if location.lower() == "bank": 
+            if location.lower() == "bank":
                 await self.set_money(ctx, member.id, amount, wallet)
-            elif location.lower() == "wallet": 
+            elif location.lower() == "wallet":
                 await self.set_money(ctx, member.id, bank, amount)
             #self.update_balance(member, amount)
         else:
@@ -86,7 +86,7 @@ class BankAccount(commands.Cog):
         if isinstance(error, MissingPermissions):
             text = "NOPE 🤣".format(ctx.message.author)
             await bot.send_message(ctx.message.channel, text)
-        
+
     @commands.command(name='pay', help='Pay an amount of $$ to another user.')
     async def pay(self, ctx, username, amount):
         '''
@@ -124,10 +124,10 @@ class BankAccount(commands.Cog):
         if amount < 0:
             await ctx.send("{}, you can't transfer a negative amount".format(ctx.message.author, bank, wallet))
             return
-        elif destination.lower() == "bank": 
+        elif destination.lower() == "bank":
             if wallet - amount >= 0:
                 await self.set_money(ctx, ctx.message.author.id, bank + amount, wallet - amount)
-        elif destination.lower() == "wallet": 
+        elif destination.lower() == "wallet":
             if bank - amount >= 0:
                 await self.set_money(ctx, ctx.message.author.id, bank - amount, wallet + amount)
         bank, wallet = await self.open_account(ctx)
@@ -162,7 +162,7 @@ class BankAccount(commands.Cog):
         description = ""
         title = ""
 
-        if choice.lower() == "higher": 
+        if choice.lower() == "higher":
             if result >= 5:
                 await self.set_money(ctx, ctx.message.author.id, bank, wallet + (prize))
                 description = "{}".format(result)
@@ -186,7 +186,7 @@ class BankAccount(commands.Cog):
                     await self.set_money(ctx, ctx.message.author.id, bank, wallet - amount)
                 description = "{}".format(result)
                 title = "You win nothing"
-        
+
         embedd = discord.Embed(
             title=title,
             description="Cost = {} {}'s".format(price, MONEY_SYMBOL),
@@ -245,7 +245,7 @@ class BankAccount(commands.Cog):
         '''
         members = self.find_all_members(ctx)
         title = "💰 Leaderboard 💰"
-        
+
         member_list = ""
         total_lst = []
         result_lst = ""
@@ -284,7 +284,7 @@ class BankAccount(commands.Cog):
         # SLOTS PRIZES
         # 💎 4 diamond = $500
         # 🔥 4 fire = $150
-        # 🍒 4 cherry = $70 
+        # 🍒 4 cherry = $70
         # 🍇 2 grapes = $5
         # ❤️ hearts = $1 per
         # jackpot = 4 diamond + 2 fire + 2 cherry = $5000
@@ -327,7 +327,7 @@ class BankAccount(commands.Cog):
             elif wheel[0] == '🍒': cherries += 1
             elif wheel[0] == '🍇': grapes += 1
             elif wheel[0] == '❤️': hearts += 1
-        
+
         if diamonds >= 4: prize += 1100
         if fires >= 4: prize += 850
         if cherries >= 4: prize += 350
@@ -336,7 +336,7 @@ class BankAccount(commands.Cog):
 
         if grapes >= 2: prize += 45
         if hearts > 0: prize += hearts
-        if diamonds >= 4 and fires >= 2 and cherries >= 2: 
+        if diamonds >= 4 and fires >= 2 and cherries >= 2:
             prize += jackpot_amt
             hit_jackpot = True
 
@@ -354,7 +354,7 @@ class BankAccount(commands.Cog):
             wheels[1][0],wheels[4][0],wheels[7][0],
             wheels[2][0],wheels[5][0],wheels[8][0],
         )
-        
+
         await self.update_balance(ctx, prize)
 
         embedd = discord.Embed(
@@ -382,7 +382,7 @@ class BankAccount(commands.Cog):
         #members = list(ctx.message.server.members)
         member = [a for a in members if a.name.lower() == username.lower()][0]
         return member
-    
+
     async def check_for_enough_balance(self, ctx, user_id, amount) -> str:
         '''
         Validates the user with user_id has enough balance.
@@ -453,11 +453,11 @@ class BankAccount(commands.Cog):
         username = self.get_user_from_discord_id(ctx, user_id).name
         conn.update_user_money(user_id, guild_id, username, wallet, bank)
         return wallet, bank
-            
+
     async def get_simple_bank(self, ctx, member, user_id) -> (int, int):
         '''
         Returns the bank and wallet of user_id
-        
+
         Attributes:
             ctx: user who sent command
             member: get bank and wallet of member
@@ -480,7 +480,7 @@ class BankAccount(commands.Cog):
         username = self.get_user_from_discord_id(ctx, user_id).name
         if server is None:
             guild_name = self.get_guild_name(ctx)
-            conn.add_server(guild_id, guild_name)
+            conn.add_server(guild_id, guild_name, 0, 0)
         user = conn.get_user_in_server(user_id, guild_id, username)
         if user is None:
             conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
@@ -489,7 +489,7 @@ class BankAccount(commands.Cog):
     def find_all_members(self, ctx):
         '''
         Returns all members in server
-        
+
         Attributes:
             ctx: user who sent command
         '''
@@ -507,7 +507,7 @@ class BankAccount(commands.Cog):
     async def open_account_userid(self, ctx, member) -> (int, int):
         '''
         Open new bank account and wallet for member
-        
+
         Attributes:
             ctx: user who sent command
             member: open bank for
@@ -518,7 +518,7 @@ class BankAccount(commands.Cog):
         conn = DbConn()
         server = conn.get_server(guild_id)
         if server is None:
-            conn.add_server(guild_id, guild_name)
+            conn.add_server(guild_id, guild_name, 0, 0)
         user = conn.get_user_in_server(member.id, guild_id, member.name)
         if user is None:
             conn.add_user(member.id, guild_id, STARTING_MONEY, STARTING_MONEY, member.name)
@@ -529,7 +529,7 @@ class BankAccount(commands.Cog):
     async def open_account(self, ctx) -> (int, int):
         '''
         Open new account for ctx
-        
+
         Attributes:
             ctx: user who sent command
         '''
@@ -540,7 +540,7 @@ class BankAccount(commands.Cog):
         conn = DbConn()
         server = conn.get_server(guild_id)
         if server is None:
-            conn.add_server(guild_id, guild_name)
+            conn.add_server(guild_id, guild_name, 0, 0)
         user = conn.get_user_in_server(ctx.message.author.id, guild_id, ctx.message.author.name)
         if user is None:
             conn.add_user(user_id, guild_id, STARTING_MONEY, STARTING_MONEY, username)
@@ -559,16 +559,16 @@ class BankAccount(commands.Cog):
     def get_user_id(self, ctx):
         user_id = ctx.message.author.id
         return user_id
-        
+
     def get_username(self, ctx):
         user_name = ctx.message.author.name
         return user_name
-    
+
     @commands.command(name='test', help='Used for testing commands. Development mode only')
     async def test(self, ctx):
         '''
         Test command method
-        
+
         Attributes:
             ctx: user who sent command
         '''
@@ -577,7 +577,7 @@ class BankAccount(commands.Cog):
         user_id = self.get_user_id(ctx)
         username = self.get_username(ctx)
         conn = DbConn()
-        
+
         conn.update_user_money(user_id, guild_id, username, 2000, 2000)
         user = conn.get_user(user_id, guild_id)
 
@@ -596,7 +596,7 @@ class BankAccount(commands.Cog):
     async def get_users(self, guild_id):
         '''
         Get all users from database.
-        
+
         Attributes:
             ctx: user who sent command
         '''
