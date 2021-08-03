@@ -17,15 +17,20 @@ COPY requirements.txt .
 
 RUN apt-get install python3-pip -y
 
+ADD odbcinst.ini /etc/odbcinst.ini
+
 RUN apt-get update \
  && apt-get install unixodbc -y \
  && apt-get install unixodbc-dev -y \
  && apt-get install freetds-dev -y \
  && apt-get install freetds-bin -y \
+ && apt-get install -y tdsodbc unixodbc-dev\
  && apt-get install tdsodbc -y \
  && apt-get install --reinstall build-essential -y \
  && apt-get install apt-utils -y \
  && apt-get install gcc
+
+RUN apt-get clean -y
 
 # populate "ocbcinst.ini"
 RUN echo "[FreeTDS]\n\

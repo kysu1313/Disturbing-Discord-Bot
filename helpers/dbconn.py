@@ -17,8 +17,8 @@ class DbConn:
         self.driver = '{FreeTDS}'
         #self.driver = '{ODBC Driver 17 for SQL Server}'
 
-        self.tds_version = ';TDS_Version=7.2;'
-        #self.tds_version = ''
+        #self.tds_version = ';TDS_Version=7.2;'
+        self.tds_version = ''
         self.conn = None
 
     def __connect(self):
