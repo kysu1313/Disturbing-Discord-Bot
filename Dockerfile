@@ -17,7 +17,6 @@ COPY requirements.txt .
 
 RUN apt-get install python3-pip -y
 
-ADD odbcinst.ini /etc/odbcinst.ini
 
 RUN apt-get update \
  && apt-get install unixodbc -y \
@@ -38,6 +37,8 @@ TDS_Version = '7.3'\n\
 Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
+
+ADD odbcinst.ini /etc/odbcinst.ini
 
 RUN apt-get install --reinstall build-essential -y
 RUN apt-get install freetds-common freetds-bin tdsodbc
