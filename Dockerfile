@@ -38,7 +38,7 @@ Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
 
-ADD odbcinst.ini /etc/odbcinst.ini
+#ADD /etc/odbcinst.ini
 
 RUN apt-get install --reinstall build-essential -y
 RUN apt-get install freetds-common freetds-bin tdsodbc
