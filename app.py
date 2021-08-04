@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import json
 from helpers.dbconn import DbConn
 from cogs.controls import Controls
+from discord.client import Client
 
 coins = ['AUR','BCH','BTC','DASH','DOGE','EOS','ETC','ETH','GRC','LTC','MZC','NANO','NEO','NMC','NXT','POT','PPC','TIT','USDC','USDT','VTC','XEM','XLM','XMR','XPM','XRP','XVG','ZEC']
 greetings = ['hiya', 'hi', 'hey', 'yo', 'hello', 'whats up', "what's up", 'yoo', 'yooo', 'sup', 'ayo', 'ayoo', 'howdy']
@@ -39,7 +40,7 @@ MESSAGE_INTERVAL = 0
 ####### IMPORTANT: CHANGE FOR PRODUCTION ########
 #################################################
 PROD_MODE = False
-DOCKER = False
+DOCKER = True
 
 
 intents = discord.Intents.all()
@@ -54,6 +55,14 @@ async def on_ready():
     print(f"Python version: {platform.python_version()}")
     print(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     print("-------------------")
+    #text_channel_list = []
+    #for server in client.servers:
+    #    for channel in server.channels:
+    #        if channel.type == 'Text':
+    #            text_channel_list.append(channel)
+    #            await client.get_channel(channel.id).send('Bot connected from --> Linode Master Server, Docker Image V.1.2')
+
+    #bot.send('Bot connected from --> Linode Master Server, Docker Image V.1.2')
 
 
 @bot.event
@@ -221,7 +230,7 @@ for filename in os.listdir('./cogs'):
 # Run the bot
 if __name__ == '__main__':
     ENABLED = True
-    settings = Settings(PROD_MODE)
+    settings = Settings(PROD_MODE, DOCKER)
     TOKEN = settings.get_bot_token()
     print("Setting tokens")
     bot.run(TOKEN)
