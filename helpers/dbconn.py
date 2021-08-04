@@ -15,13 +15,11 @@ class DbConn:
         self.username = os.environ.get('DB_USERNAME')
         self.password = os.environ.get('DB_PASSWORD')
         self.dbName = os.environ.get('DB_NAME')
-        self.settings = Settings()
-        if not self.settings.get_is_docker():
-            self.tds_version = ';TDS_Version=7.2;'
-            self.driver = '{FreeTDS}'
-        else:
-            self.tds_version = ''
-            self.driver = '{ODBC Driver 17 for SQL Server}'
+        
+        self.tds_version = ';TDS_Version=7.2;'
+        self.driver = '{FreeTDS}'
+        #self.tds_version = ''
+        #self.driver = '{ODBC Driver 17 for SQL Server}'
 
         self.conn = None
 
