@@ -2,9 +2,9 @@
 
 
 # parent image
-#FROM python:3.7
+FROM laudio/pyodbc:1.0.4
+FROM python:3.7
 FROM ubuntu:18.04
-#FROM laudio/pyodbc:1.0.4
 #RUN mkdir /app
 WORKDIR /
 ADD / .
@@ -20,7 +20,6 @@ COPY requirements.txt .
 
 # install FreeTDS and dependencies
 RUN apt-get install python3-pip -y
-#RUN apt-get install unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc -y
 
 RUN apt-get update \
  && apt-get install unixodbc -y \
